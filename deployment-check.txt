@@ -1,2 +1,4 @@
 
 Trigger Cloudflare deployment for Bergholz Attendance Portal.
+
+GitHub permissions updated. Triggering new Cloudflare deployment.
