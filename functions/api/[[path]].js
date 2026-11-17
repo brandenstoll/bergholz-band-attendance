@@ -1,35 +1,84 @@
 const json=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 const sha=async s=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))).map(b=>b.toString(16).padStart(2,'0')).join('');
 const cookie=(name,req)=>req.headers.get('Cookie')?.split(';').map(x=>x.trim()).find(x=>x.startsWith(name+'='))?.slice(name.length+1);
+const goodDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
+const goodTime=s=>s===null||s===''||/^([01]\d|2[0-3]):[0-5]\d$/.test(s);
+const emailOK=s=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
+const leader=u=>u&&['leader','admin'].includes(u.role);
 async function current(req,env){const token=cookie('band_session',req);if(!token)return null;return env.DB.prepare('SELECT m.* FROM sessions s JOIN members m ON m.id=s.member_id WHERE s.token_hash=? AND s.expires_at>? AND m.active=1').bind(await sha(token),Date.now()).first()}
+async function body(req){try{return await req.json()}catch{return null}}
 export async function onRequest({request,env,params}){
- const path='/'+(params.path||[]).join('/');const method=request.method;
+ const path='/'+(Array.isArray(params.path)?params.path:[params.path].filter(Boolean)).join('/');const method=request.method;
  try{
-  if(path==='/events'&&method==='GET'){const events=await env.DB.prepare('SELECT * FROM events ORDER BY event_date,start_time').all();return json({events:events.results})}
-  if(path==='/me'&&method==='GET'){const user=await current(request,env);return json({user:user&&{id:user.id,name:user.display_name,email:user.email,role:user.role,section_id:user.section_id}})}
+  if(!env.DB)return json({error:'Database binding unavailable'},503);
+  if(!['GET','HEAD'].includes(method)){const origin=request.headers.get('Origin');if(origin&&origin!==new URL(request.url).origin)return json({error:'Invalid request origin'},403)}
+  if(path==='/events'&&method==='GET'){const rows=await env.DB.prepare('SELECT * FROM events ORDER BY event_date,start_time,id').all();return json({events:rows.results})}
+  if(path==='/me'&&method==='GET'){const u=await current(request,env);return json({user:u&&{id:u.id,name:u.display_name,email:u.email,role:u.role,section_id:u.section_id}})}
   if(path==='/auth/request'&&method==='POST'){
-   const {email}=await request.json();const normalized=String(email||'').trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(normalized))return json({error:'Valid email required'},400);
+   const data=await body(request);const normalized=String(data?.email||'').trim().toLowerCase();if(!emailOK(normalized))return json({error:'Valid email required'},400);
    const member=await env.DB.prepare('SELECT id FROM members WHERE email=? AND active=1').bind(normalized).first();
-   if(member){const code=String(crypto.getRandomValues(new Uint32Array(1))[0]%1000000).padStart(6,'0');await env.DB.prepare('INSERT INTO login_codes(email,code_hash,expires_at,attempts) VALUES(?,?,?,0) ON CONFLICT(email) DO UPDATE SET code_hash=excluded.code_hash,expires_at=excluded.expires_at,attempts=0').bind(normalized,await sha(code+':'+env.AUTH_SECRET),Date.now()+600000).run();
-    if(!env.RESEND_API_KEY||!env.MAIL_FROM)return json({error:'Email delivery is not configured'},503);
-    const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:env.MAIL_FROM,to:[normalized],subject:'Bergholz Band sign-in code',text:`Your Bergholz Band sign-in code is ${code}. It expires in 10 minutes.`})});if(!sent.ok)return json({error:'Could not send code'},502);
-   }
-   return json({ok:true,message:'If your email is approved, a code has been sent.'});
+   if(member){if(!env.AUTH_SECRET||!env.RESEND_API_KEY||!env.MAIL_FROM)return json({error:'Email login is not configured'},503);
+    const code=String(crypto.getRandomValues(new Uint32Array(1))[0]%1000000).padStart(6,'0');
+    await env.DB.prepare('INSERT INTO login_codes(email,code_hash,expires_at,attempts) VALUES(?,?,?,0) ON CONFLICT(email) DO UPDATE SET code_hash=excluded.code_hash,expires_at=excluded.expires_at,attempts=0').bind(normalized,await sha(code+':'+env.AUTH_SECRET),Date.now()+600000).run();
+    const sent=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${env.RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:env.MAIL_FROM,to:[normalized],subject:'Bergholz Band sign-in code',text:`Your Bergholz Band sign-in code is ${code}. It expires in 10 minutes.`})});if(!sent.ok)return json({error:'Could not send code. Check your verified Resend sending domain and recipient.'},502);
+   }return json({ok:true,message:'If your email is approved, a code has been sent.'});
   }
   if(path==='/auth/verify'&&method==='POST'){
-   const {email,code}=await request.json();const normalized=String(email||'').trim().toLowerCase();const record=await env.DB.prepare('SELECT * FROM login_codes WHERE email=?').bind(normalized).first();
+   const data=await body(request);const normalized=String(data?.email||'').trim().toLowerCase();const record=await env.DB.prepare('SELECT * FROM login_codes WHERE email=?').bind(normalized).first();
    if(!record||record.expires_at<Date.now()||record.attempts>=5)return json({error:'Invalid or expired code'},401);
    await env.DB.prepare('UPDATE login_codes SET attempts=attempts+1 WHERE email=?').bind(normalized).run();
-   if(await sha(String(code)+':'+env.AUTH_SECRET)!==record.code_hash)return json({error:'Invalid or expired code'},401);
+   if(!env.AUTH_SECRET||await sha(String(data?.code||'')+':'+env.AUTH_SECRET)!==record.code_hash)return json({error:'Invalid or expired code'},401);
    const member=await env.DB.prepare('SELECT id FROM members WHERE email=? AND active=1').bind(normalized).first();if(!member)return json({error:'Not authorized'},403);
-   await env.DB.prepare('DELETE FROM login_codes WHERE email=?').bind(normalized).run();const token=Array.from(crypto.getRandomValues(new Uint8Array(32))).map(x=>x.toString(16).padStart(2,'0')).join('');await env.DB.prepare('INSERT INTO sessions(token_hash,member_id,expires_at) VALUES(?,?,?)').bind(await sha(token),member.id,Date.now()+30*86400000).run();return new Response(JSON.stringify({ok:true}),{headers:{'Content-Type':'application/json','Set-Cookie':`band_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`}})
+   await env.DB.prepare('DELETE FROM login_codes WHERE email=?').bind(normalized).run();const token=Array.from(crypto.getRandomValues(new Uint8Array(32))).map(x=>x.toString(16).padStart(2,'0')).join('');
+   await env.DB.prepare('INSERT INTO sessions(token_hash,member_id,expires_at) VALUES(?,?,?)').bind(await sha(token),member.id,Date.now()+30*86400000).run();
+   return new Response(JSON.stringify({ok:true}),{headers:{'Content-Type':'application/json','Cache-Control':'no-store','Set-Cookie':`band_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`}})
   }
   if(path==='/auth/logout'&&method==='POST'){const token=cookie('band_session',request);if(token)await env.DB.prepare('DELETE FROM sessions WHERE token_hash=?').bind(await sha(token)).run();return new Response(JSON.stringify({ok:true}),{headers:{'Content-Type':'application/json','Set-Cookie':'band_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0'}})}
   const user=await current(request,env);if(!user)return json({error:'Sign in required'},401);
-  if(path==='/attendance'&&method==='GET'){const rows=await env.DB.prepare('SELECT a.event_id,a.member_id,a.response,m.display_name,m.section_id FROM attendance a JOIN members m ON m.id=a.member_id WHERE m.active=1 AND (m.id=? OR (? IN (\'leader\',\'admin\') AND (m.section_id=? OR ?=\'admin\')))').bind(user.id,user.role,user.section_id,user.role).all();return json({attendance:rows.results})}
-  if(path==='/attendance'&&method==='POST'){const {event_id,response}=await request.json();if(!['yes','no','maybe'].includes(response)||!Number.isInteger(event_id))return json({error:'Invalid response'},400);const event=await env.DB.prepare('SELECT id FROM events WHERE id=? AND status=\'scheduled\'').bind(event_id).first();if(!event)return json({error:'Event unavailable'},404);await env.DB.prepare('INSERT INTO attendance(event_id,member_id,response) VALUES(?,?,?) ON CONFLICT(event_id,member_id) DO UPDATE SET response=excluded.response,updated_at=CURRENT_TIMESTAMP').bind(event_id,user.id,response).run();return json({ok:true})}
-  if(path==='/members'&&method==='GET'){if(!['leader','admin'].includes(user.role))return json({error:'Forbidden'},403);const rows=await env.DB.prepare('SELECT id,display_name,email,section_id,role,active FROM members WHERE section_id=? OR ?=\'admin\' ORDER BY display_name').bind(user.section_id,user.role).all();return json({members:rows.results})}
-  if(path==='/events'&&method==='POST'){if(!['leader','admin'].includes(user.role))return json({error:'Forbidden'},403);const e=await request.json();if(!['rehearsal','performance'].includes(e.event_type)||!/^\d{4}-\d{2}-\d{2}$/.test(e.event_date)||!e.title)return json({error:'Invalid event'},400);await env.DB.prepare('INSERT INTO events(title,event_type,event_date,start_time,location,notes) VALUES(?,?,?,?,?,?)').bind(e.title,e.event_type,e.event_date,e.start_time||null,e.location||null,e.notes||null).run();return json({ok:true})}
+  if(path==='/sections'&&method==='GET'){const rows=await env.DB.prepare('SELECT id,name FROM sections ORDER BY name').all();return json({sections:rows.results})}
+  if(path==='/attendance'&&method==='GET'){
+   const rows=await env.DB.prepare('SELECT a.event_id,a.member_id,a.response,m.display_name,m.section_id FROM attendance a JOIN members m ON m.id=a.member_id WHERE m.active=1 AND (m.id=? OR (? IN (\'leader\',\'admin\') AND (m.section_id=? OR ?=\'admin\')))').bind(user.id,user.role,user.section_id,user.role).all();return json({attendance:rows.results})
+  }
+  if(path==='/attendance'&&method==='POST'){
+   const d=await body(request);if(!['yes','no','maybe'].includes(d?.response)||!Number.isInteger(d?.event_id))return json({error:'Invalid response'},400);
+   const event=await env.DB.prepare("SELECT id FROM events WHERE id=? AND status='scheduled'").bind(d.event_id).first();if(!event)return json({error:'Event unavailable'},404);
+   await env.DB.prepare('INSERT INTO attendance(event_id,member_id,response) VALUES(?,?,?) ON CONFLICT(event_id,member_id) DO UPDATE SET response=excluded.response,updated_at=CURRENT_TIMESTAMP').bind(d.event_id,user.id,d.response).run();return json({ok:true})
+  }
+  if(path==='/members'&&method==='GET'){
+   if(!leader(user))return json({error:'Forbidden'},403);
+   const rows=await env.DB.prepare("SELECT id,display_name,email,section_id,role,active FROM members WHERE section_id=? OR ?='admin' ORDER BY display_name").bind(user.section_id,user.role).all();return json({members:rows.results})
+  }
+  if(path==='/members'&&method==='POST'){
+   if(!leader(user))return json({error:'Forbidden'},403);const d=await body(request);const email=String(d?.email||'').trim().toLowerCase(),name=String(d?.display_name||'').trim();const section=Number(d?.section_id||user.section_id);
+   if(!emailOK(email)||!name||name.length>100||!Number.isInteger(section)||section<1)return json({error:'Valid name, email and section required'},400);
+   if(user.role!=='admin'&&section!==user.section_id)return json({error:'Cannot add members to another section'},403);
+   const sec=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();if(!sec)return json({error:'Section not found'},404);
+   const role=d?.role==='leader'?'leader':'member';if(user.role!=='admin'&&role==='leader')return json({error:'Only band admins can appoint section leaders'},403);
+   try{await env.DB.prepare('INSERT INTO members(email,display_name,section_id,role,active) VALUES(?,?,?,?,1)').bind(email,name,section,role).run()}catch{return json({error:'That email address is already registered'},409)}return json({ok:true},201)
+  }
+  const memberMatch=path.match(/^\/members\/(\d+)$/);
+  if(memberMatch&&method==='PATCH'){
+   if(!leader(user))return json({error:'Forbidden'},403);const id=Number(memberMatch[1]);const target=await env.DB.prepare('SELECT * FROM members WHERE id=?').bind(id).first();if(!target)return json({error:'Member not found'},404);
+   if(user.role!=='admin'&&target.section_id!==user.section_id)return json({error:'Forbidden'},403);
+   const d=await body(request);const name=String(d?.display_name??target.display_name).trim();const email=String(d?.email??target.email).trim().toLowerCase();const active=d?.active===undefined?target.active:Number(d.active);const role=d?.role??target.role;const section=d?.section_id===undefined?target.section_id:Number(d.section_id);
+   if(!name||name.length>100||!emailOK(email)||![0,1].includes(active)||!['member','leader','admin'].includes(role)||!Number.isInteger(section))return json({error:'Invalid member details'},400);
+   if(user.role!=='admin'&&(role!==target.role||section!==target.section_id))return json({error:'Only band admins can change roles or sections'},403);
+   if(user.role==='admin'&&role==='admin'&&target.role!=='admin')return json({error:'Additional band administrators must be provisioned separately'},403);
+   if(id===user.id&&(!active||role!==user.role||section!==user.section_id))return json({error:'You cannot deactivate or change your own access'},400);
+   const sec=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();if(!sec)return json({error:'Section not found'},404);
+   try{await env.DB.prepare('UPDATE members SET display_name=?,email=?,active=?,role=?,section_id=? WHERE id=?').bind(name,email,active,role,section,id).run()}catch{return json({error:'Email already in use'},409)}
+   if(!active)await env.DB.prepare('DELETE FROM sessions WHERE member_id=?').bind(id).run();return json({ok:true})
+  }
+  if(path==='/events'&&method==='POST'){
+   if(!leader(user))return json({error:'Forbidden'},403);const e=await body(request);if(!['rehearsal','performance'].includes(e?.event_type)||!goodDate(e?.event_date)||!String(e?.title||'').trim()||String(e.title).length>150||!goodTime(e.start_time??null))return json({error:'Invalid event details'},400);
+   await env.DB.prepare('INSERT INTO events(title,event_type,event_date,start_time,location,notes) VALUES(?,?,?,?,?,?)').bind(e.title.trim(),e.event_type,e.event_date,e.start_time||null,String(e.location||'').trim()||null,String(e.notes||'').trim()||null).run();return json({ok:true},201)
+  }
+  const eventMatch=path.match(/^\/events\/(\d+)$/);
+  if(eventMatch&&method==='PATCH'){
+   if(!leader(user))return json({error:'Forbidden'},403);const id=Number(eventMatch[1]);const old=await env.DB.prepare('SELECT * FROM events WHERE id=?').bind(id).first();if(!old)return json({error:'Event not found'},404);
+   const d=await body(request);const e={...old,...d};if(!['rehearsal','performance'].includes(e.event_type)||!goodDate(e.event_date)||!String(e.title||'').trim()||String(e.title).length>150||!goodTime(e.start_time??null)||!['scheduled','cancelled'].includes(e.status))return json({error:'Invalid event details'},400);
+   await env.DB.prepare('UPDATE events SET title=?,event_type=?,event_date=?,start_time=?,location=?,notes=?,status=? WHERE id=?').bind(e.title.trim(),e.event_type,e.event_date,e.start_time||null,String(e.location||'').trim()||null,String(e.notes||'').trim()||null,e.status,id).run();return json({ok:true})
+  }
   return json({error:'Not found'},404);
- }catch(e){return json({error:'Request failed'},500)}
+ }catch(e){console.error('Bergholz API failure',method,path,e?.message||e);return json({error:'Request failed'},500)}
 }
