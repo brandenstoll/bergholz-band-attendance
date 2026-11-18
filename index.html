@@ -38,4 +38,7 @@ $('bulk-preview').onclick=()=>{const lines=$('bulk-input').value.split(/\r?\n/).
 $('bulk-save').onclick=async()=>{if(!bulkEntries.length||!confirm(`Add ${bulkEntries.length} members?`))return;const button=$('bulk-save');button.disabled=true;$('bulk-msg').textContent='Adding members…';try{const result=await send('/members/bulk',{members:bulkEntries});$('bulk-msg').textContent=`Import complete. Added: ${result.added??0}. Skipped: ${result.skipped??0}.`;$('bulk-results').textContent=Array.isArray(result.errors)&&result.errors.length?result.errors.map(x=>typeof x==='string'?x:JSON.stringify(x)).join(' | '):'';bulkEntries=[];$('bulk-input').value='';await refreshLeader()}catch(e){$('bulk-msg').textContent=e.message+' The bulk API endpoint must be installed before this button can save members.';button.disabled=false}};
 $('edit-event').onchange=()=>{const id=Number($('edit-event').value);id?editEvent(id):resetEvent()};$('event-reset').onclick=resetEvent;$('event-form').onsubmit=async ev=>{ev.preventDefault();const data=Object.fromEntries(new FormData(ev.target));if(!editingEvent)delete data.status;try{await send(editingEvent?'/events/'+editingEvent:'/events',data,editingEvent?'PATCH':'POST');$('event-msg').textContent='Event saved.';resetEvent();events=(await api('/events')).events;render();renderEventOptions();if(selected)openEvent(selected.id)}catch(e){$('event-msg').textContent=e.message}};
 init().catch(e=>$('notice').textContent=e.message);
-</script></body></html>
+</script>
+<script src="/attendance-section-update.js"></script>
+</body>
+</html>
