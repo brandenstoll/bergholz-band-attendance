@@ -4,8 +4,7 @@ const cookie=(name,req)=>req.headers.get('Cookie')?.split(';').map(x=>x.trim()).
 const goodDate=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+'T12:00:00Z'))&&new Date(s+'T12:00:00Z').toISOString().slice(0,10)===s;
 const goodTime=s=>s===null||s===''||/^([01]\d|2[0-3]):[0-5]\d$/.test(s);
 const emailOK=s=>/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(s);
-const OWNER_EMAIL='brandenstoll@gmail.com';
-const owner=u=>u&&u.email.toLowerCase()===OWNER_EMAIL;
+const owner=u=>u?.email?.toLowerCase()==='brandenstoll@gmail.com';
 const admin=u=>u&&(owner(u)||u.role==='admin');
 const leader=u=>u&&(admin(u)||u.role==='leader');
 async function current(req,env){const token=cookie('band_session',req);if(!token)return null;return env.DB.prepare('SELECT m.* FROM sessions s JOIN members m ON m.id=s.member_id WHERE s.token_hash=? AND s.expires_at>? AND m.active=1').bind(await sha(token),Date.now()).first()}
@@ -40,12 +39,19 @@ export async function onRequest({request,env,params}){
   const user=await current(request,env);if(!user)return json({error:'Sign in required'},401);
   if(path==='/sections'&&method==='GET'){const rows=await env.DB.prepare('SELECT id,name FROM sections ORDER BY name').all();return json({sections:rows.results})}
   if(path==='/attendance'&&method==='GET'){
-   const rows=await env.DB.prepare('SELECT a.event_id,a.member_id,a.response,m.display_name,m.section_id FROM attendance a JOIN members m ON m.id=a.member_id WHERE m.active=1 AND (m.id=? OR (?=1 AND m.section_id=?) OR ?=1)').bind(user.id,user.role==='leader'?1:0,user.section_id,admin(user)?1:0).all();return json({attendance:rows.results})
+   const rows=await env.DB.prepare('SELECT a.event_id,a.member_id,a.response,m.display_name,m.section_id FROM attendance a JOIN members m ON m.id=a.member_id WHERE m.active=1 AND (m.id=? OR (?=1 AND (m.section_id=? OR ?=1)))').bind(user.id,leader(user)?1:0,user.section_id,admin(user)?1:0).all();return json({attendance:rows.results})
   }
   if(path==='/attendance'&&method==='POST'){
    const d=await body(request);if(!['yes','no','maybe'].includes(d?.response)||!Number.isInteger(d?.event_id))return json({error:'Invalid response'},400);
    const event=await env.DB.prepare("SELECT id FROM events WHERE id=? AND status='scheduled'").bind(d.event_id).first();if(!event)return json({error:'Event unavailable'},404);
-   await env.DB.prepare('INSERT INTO attendance(event_id,member_id,response) VALUES(?,?,?) ON CONFLICT(event_id,member_id) DO UPDATE SET response=excluded.response,updated_at=CURRENT_TIMESTAMP').bind(d.event_id,user.id,d.response).run();return json({ok:true})
+   const targetId=d.member_id===undefined?user.id:Number(d.member_id);
+   if(!Number.isSafeInteger(targetId)||targetId<1)return json({error:'Invalid member'},400);
+   if(targetId!==user.id){
+    if(!leader(user))return json({error:'Forbidden'},403);
+    const target=await env.DB.prepare('SELECT section_id FROM members WHERE id=? AND active=1').bind(targetId).first();
+    if(!target||(!admin(user)&&(!user.section_id||target.section_id!==user.section_id)))return json({error:'Forbidden'},403);
+   }
+   await env.DB.prepare('INSERT INTO attendance(event_id,member_id,response) VALUES(?,?,?) ON CONFLICT(event_id,member_id) DO UPDATE SET response=excluded.response,updated_at=CURRENT_TIMESTAMP').bind(d.event_id,targetId,d.response).run();return json({ok:true})
   }
   if(path==='/members'&&method==='GET'){
    if(!leader(user))return json({error:'Forbidden'},403);
@@ -55,7 +61,7 @@ export async function onRequest({request,env,params}){
     if(!admin(user))return json({error:'Forbidden'},403);
     const d=await body(request);
     if(!Array.isArray(d?.members)||d.members.length<1||d.members.length>100)return json({error:'Provide between 1 and 100 members'},400);
-    const section=Number(d.section_id||user.section_id);
+    const section=Number(user.section_id);
     if(!Number.isInteger(section)||section<1)return json({error:'Your account has no valid section'},400);
     const sec=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();
     if(!sec)return json({error:'Section not found'},404);
@@ -80,52 +86,23 @@ export async function onRequest({request,env,params}){
    if(!emailOK(email)||!name||name.length>100||!Number.isInteger(section)||section<1)return json({error:'Valid name, email and section required'},400);
    if(!admin(user)&&section!==user.section_id)return json({error:'Cannot add members to another section'},403);
    const sec=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();if(!sec)return json({error:'Section not found'},404);
-   const role=d?.role==='leader'?'leader':'member';if(!admin(user)&&role==='leader')return json({error:'Only band admins can appoint section leaders'},403);
+   const role=d?.role==='admin'&&owner(user)?'admin':d?.role==='leader'?'leader':'member';if(!admin(user)&&role==='leader')return json({error:'Only band admins can appoint section leaders'},403);
    try{await env.DB.prepare('INSERT INTO members(email,display_name,section_id,role,active) VALUES(?,?,?,?,1)').bind(email,name,section,role).run()}catch{return json({error:'That email address is already registered'},409)}return json({ok:true},201)
   }
   const memberMatch=path.match(/^\/members\/(\d+)$/);
   if(memberMatch&&method==='PATCH'){
    if(!admin(user))return json({error:'Forbidden'},403);const id=Number(memberMatch[1]);const target=await env.DB.prepare('SELECT * FROM members WHERE id=?').bind(id).first();if(!target)return json({error:'Member not found'},404);
+   if(!owner(user)&&(owner(target)||target.role==='admin'))return json({error:'Only the owner can edit administrators'},403);
    if(!admin(user)&&target.section_id!==user.section_id)return json({error:'Forbidden'},403);
    const d=await body(request);const name=String(d?.display_name??target.display_name).trim();const email=String(d?.email??target.email).trim().toLowerCase();const active=d?.active===undefined?target.active:Number(d.active);const role=d?.role??target.role;const section=d?.section_id===undefined?target.section_id:Number(d.section_id);
+   if(owner(target)&&(email!==target.email||!active||role!==target.role))return json({error:'Cannot change owner access'},403);
    if(!name||name.length>100||!emailOK(email)||![0,1].includes(active)||!['member','leader','admin'].includes(role)||!Number.isInteger(section))return json({error:'Invalid member details'},400);
    if(!admin(user)&&(role!==target.role||section!==target.section_id))return json({error:'Only band admins can change roles or sections'},403);
-   if(!owner(user)&&target.role==='admin')return json({error:'Only the Owner can manage administrator accounts'},403);
-   if(!owner(user)&&role==='admin'&&target.role!=='admin')return json({error:'Only the Owner can appoint administrators'},403);
-   if(owner(target)&&!owner(user))return json({error:'Owner account is protected'},403);
-   if(owner(target)&&(!active||email!==OWNER_EMAIL||role!=='admin'))return json({error:'Owner account is protected'},403);
+   if(!owner(user)&&role==='admin'&&target.role!=='admin')return json({error:'Additional band administrators must be provisioned separately'},403);
    if(id===user.id&&(!active||role!==user.role||section!==user.section_id))return json({error:'You cannot deactivate or change your own access'},400);
    const sec=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();if(!sec)return json({error:'Section not found'},404);
    try{await env.DB.prepare('UPDATE members SET display_name=?,email=?,active=?,role=?,section_id=? WHERE id=?').bind(name,email,active,role,section,id).run()}catch{return json({error:'Email already in use'},409)}
    if(!active)await env.DB.prepare('DELETE FROM sessions WHERE member_id=?').bind(id).run();return json({ok:true})
-  }
-  const accessMatch=path.match(/^\/access\/(\d+)$/);
-  if(accessMatch&&method==='PATCH'){
-   if(!admin(user))return json({error:'Forbidden'},403);
-   const target=await env.DB.prepare('SELECT * FROM members WHERE id=?').bind(Number(accessMatch[1])).first();
-   if(!target)return json({error:'Member not found'},404);
-   if(owner(target))return json({error:'Owner access cannot be modified'},403);
-   const d=await body(request),role=d?.role,section=Number(d?.section_id??target.section_id);
-   if(!['member','leader','admin'].includes(role)||!Number.isInteger(section))return json({error:'Invalid role or section'},400);
-   if((role==='admin'||target.role==='admin')&&!owner(user))return json({error:'Only the Owner can grant or revoke administrator access'},403);
-   if(target.id===user.id)return json({error:'You cannot change your own role'},403);
-   if(!await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first())return json({error:'Section not found'},404);
-   await env.DB.prepare('UPDATE members SET role=?,section_id=? WHERE id=?').bind(role,section,target.id).run();
-   await env.DB.prepare('DELETE FROM sessions WHERE member_id=?').bind(target.id).run();
-   return json({ok:true});
-  }
-  if(path==='/attendance/manage'&&method==='POST'){
-   if(!leader(user))return json({error:'Forbidden'},403);
-   const d=await body(request);
-   if(!Number.isInteger(d?.event_id)||!Number.isInteger(d?.member_id)||!['yes','no','maybe','clear'].includes(d?.response))return json({error:'Invalid attendance update'},400);
-   const target=await env.DB.prepare('SELECT id,section_id FROM members WHERE id=? AND active=1').bind(d.member_id).first();
-   if(!target)return json({error:'Member not found'},404);
-   if(!admin(user)&&target.section_id!==user.section_id)return json({error:'Outside your section'},403);
-   const event=await env.DB.prepare("SELECT id FROM events WHERE id=? AND status='scheduled'").bind(d.event_id).first();
-   if(!event)return json({error:'Event unavailable'},404);
-   if(d.response==='clear')await env.DB.prepare('DELETE FROM attendance WHERE event_id=? AND member_id=?').bind(d.event_id,d.member_id).run();
-   else await env.DB.prepare('INSERT INTO attendance(event_id,member_id,response) VALUES(?,?,?) ON CONFLICT(event_id,member_id) DO UPDATE SET response=excluded.response,updated_at=CURRENT_TIMESTAMP').bind(d.event_id,d.member_id,d.response).run();
-   return json({ok:true});
   }
   if(path==='/events'&&method==='POST'){
    if(!admin(user))return json({error:'Forbidden'},403);const e=await body(request);if(!['rehearsal','performance'].includes(e?.event_type)||!goodDate(e?.event_date)||!String(e?.title||'').trim()||String(e.title).length>150||!goodTime(e.start_time??null))return json({error:'Invalid event details'},400);
