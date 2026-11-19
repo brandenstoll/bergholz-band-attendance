@@ -9,7 +9,12 @@ renderSummary = function () {
     target.innerHTML = '<p class="muted">Choose an event.</p>';
     return;
   }
-  const active = members.filter(m => m.active && (admin() || m.section_id === user.section_id));
+  // Exclude members who have not yet confirmed their instrument group.
+  // Their legacy section_id may still point to Baritone & Tenor Horn.
+  const active = members.filter(m =>
+    m.active && m.section_confirmed !== 0 &&
+    (admin() || m.section_id === user.section_id)
+  );
   const rows = active.map(m => ({
     m,
     response: attendance.find(a => a.event_id === id && a.member_id === m.id)?.response
