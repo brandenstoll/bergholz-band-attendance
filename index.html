@@ -28,7 +28,7 @@ function renderAccess(){
   const editable=!isOwner&&(user.role==='owner'||!isAdmin);
   const roles=user.role==='owner'?['member','leader','admin']:['member','leader'];
   const roleSelect=isOwner?'<strong>Owner</strong>':`<select data-access-role="${m.id}" ${editable?'':'disabled'}>${roles.map(r=>`<option value="${r}" ${m.role===r?'selected':''}>${r==='leader'?'Section Leader':r==='admin'?'Administrator':'Member'}</option>`).join('')}</select>`;
-  const sectionSelect=`<select data-access-section="${m.id}" ${editable?'':'disabled'}>${sections.map(s=>`<option value="${s.id}" ${String(s.id)===String(m.section_id)?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`;
+  const sectionSelect=`<select data-access-section="${m.id}" ${editable?'':'disabled'}>${m.section_confirmed===0?'<option value="" selected>Awaiting Selection</option>':''}${sections.map(s=>`<option value="${s.id}" ${m.section_confirmed!==0&&String(s.id)===String(m.section_id)?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`;
   return `<tr><td>${esc(m.display_name)}<div class="small muted">${esc(m.email)}</div></td><td>${sectionSelect}</td><td>${roleSelect}</td><td>${editable?`<button class="secondary" data-access-save="${m.id}">Save</button>`:'Protected'}</td></tr>`;
  }).join('');
  document.querySelectorAll('[data-access-save]').forEach(btn=>btn.onclick=async()=>{
