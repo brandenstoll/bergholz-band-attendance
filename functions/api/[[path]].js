@@ -15,7 +15,7 @@ export async function onRequest({request,env,params}){
   if(!env.DB)return json({error:'Database binding unavailable'},503);
   if(!['GET','HEAD'].includes(method)){const origin=request.headers.get('Origin');if(origin&&origin!==new URL(request.url).origin)return json({error:'Invalid request origin'},403)}
   if(path==='/events'&&method==='GET'){const rows=await env.DB.prepare('SELECT * FROM events ORDER BY event_date,start_time,id').all();return json({events:rows.results})}
-  if(path==='/me'&&method==='GET'){const u=await current(request,env);return json({user:u&&{id:u.id,name:u.display_name,email:u.email,role:owner(u)?'owner':u.role,section_id:u.section_id}})}
+  if(path==='/me'&&method==='GET'){const u=await current(request,env);return json({user:u&&{id:u.id,name:u.display_name,email:u.email,role:owner(u)?'owner':u.role,section_id:u.section_id,section_confirmed:u.section_confirmed!==0}})}
   if(path==='/auth/request'&&method==='POST'){
    const data=await body(request);const normalized=String(data?.email||'').trim().toLowerCase();if(!emailOK(normalized))return json({error:'Valid email required'},400);
    const member=await env.DB.prepare('SELECT id FROM members WHERE email=? AND active=1').bind(normalized).first();
@@ -37,25 +37,35 @@ export async function onRequest({request,env,params}){
   }
   if(path==='/auth/logout'&&method==='POST'){const token=cookie('band_session',request);if(token)await env.DB.prepare('DELETE FROM sessions WHERE token_hash=?').bind(await sha(token)).run();return new Response(JSON.stringify({ok:true}),{headers:{'Content-Type':'application/json','Set-Cookie':'band_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0'}})}
   const user=await current(request,env);if(!user)return json({error:'Sign in required'},401);
-  if(path==='/sections'&&method==='GET'){const rows=await env.DB.prepare('SELECT id,name FROM sections ORDER BY name').all();return json({sections:rows.results})}
+   if(path==='/me/section'&&method==='POST'){
+    const d=await body(request);const section=Number(d?.section_id);
+    if(!Number.isSafeInteger(section)||section<1)return json({error:'Choose a valid section'},400);
+    const found=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();
+    if(!found)return json({error:'Section not found'},404);
+    if(user.section_confirmed!==0)return json({error:'Your section is already assigned. Contact an administrator to change it.'},403);
+    await env.DB.prepare('UPDATE members SET section_id=?,section_confirmed=1 WHERE id=? AND section_confirmed=0').bind(section,user.id).run();
+    return json({ok:true});
+   }
+   if(path==='/sections'&&method==='GET'){const rows=await env.DB.prepare('SELECT id,name FROM sections ORDER BY name').all();return json({sections:rows.results})}
   if(path==='/attendance'&&method==='GET'){
-   const rows=await env.DB.prepare('SELECT a.event_id,a.member_id,a.response,m.display_name,m.section_id FROM attendance a JOIN members m ON m.id=a.member_id WHERE m.active=1 AND (m.id=? OR (?=1 AND (m.section_id=? OR ?=1)))').bind(user.id,leader(user)?1:0,user.section_id,admin(user)?1:0).all();return json({attendance:rows.results})
+   const rows=await env.DB.prepare('SELECT a.event_id,a.member_id,a.response,m.display_name,m.section_id FROM attendance a JOIN members m ON m.id=a.member_id WHERE m.active=1 AND m.section_confirmed=1 AND (m.id=? OR (?=1 AND (m.section_id=? OR ?=1)))').bind(user.id,leader(user)?1:0,user.section_id,admin(user)?1:0).all();return json({attendance:rows.results})
   }
   if(path==='/attendance'&&method==='POST'){
-   const d=await body(request);if(!['yes','no','maybe'].includes(d?.response)||!Number.isInteger(d?.event_id))return json({error:'Invalid response'},400);
+    if(user.section_confirmed===0)return json({error:'Select your section before recording attendance'},403);
+    const d=await body(request);if(!['yes','no','maybe'].includes(d?.response)||!Number.isInteger(d?.event_id))return json({error:'Invalid response'},400);
    const event=await env.DB.prepare("SELECT id FROM events WHERE id=? AND status='scheduled'").bind(d.event_id).first();if(!event)return json({error:'Event unavailable'},404);
    const targetId=d.member_id===undefined?user.id:Number(d.member_id);
    if(!Number.isSafeInteger(targetId)||targetId<1)return json({error:'Invalid member'},400);
    if(targetId!==user.id){
     if(!leader(user))return json({error:'Forbidden'},403);
-    const target=await env.DB.prepare('SELECT section_id FROM members WHERE id=? AND active=1').bind(targetId).first();
+    const target=await env.DB.prepare('SELECT section_id FROM members WHERE id=? AND active=1 AND section_confirmed=1').bind(targetId).first();
     if(!target||(!admin(user)&&(!user.section_id||target.section_id!==user.section_id)))return json({error:'Forbidden'},403);
    }
    await env.DB.prepare('INSERT INTO attendance(event_id,member_id,response) VALUES(?,?,?) ON CONFLICT(event_id,member_id) DO UPDATE SET response=excluded.response,updated_at=CURRENT_TIMESTAMP').bind(d.event_id,targetId,d.response).run();return json({ok:true})
   }
   if(path==='/members'&&method==='GET'){
    if(!leader(user))return json({error:'Forbidden'},403);
-   const rows=await env.DB.prepare("SELECT id,display_name,email,section_id,role,active FROM members WHERE section_id=? OR ?=1 ORDER BY display_name").bind(user.section_id,admin(user)?1:0).all();return json({members:rows.results})
+   const rows=await env.DB.prepare("SELECT id,display_name,email,section_id,section_confirmed,role,active FROM members WHERE section_id=? OR ?=1 ORDER BY display_name").bind(user.section_id,admin(user)?1:0).all();return json({members:rows.results})
   }
    if(path==='/members/bulk'&&method==='POST'){
     if(!admin(user))return json({error:'Forbidden'},403);
@@ -75,14 +85,14 @@ export async function onRequest({request,env,params}){
     let added=0,skipped=0;const errors=[];
     for(const m of cleaned){
      try{
-      const result=await env.DB.prepare("INSERT OR IGNORE INTO members(email,display_name,section_id,role,active) VALUES(?,?,?,'member',1)").bind(m.email,m.name,section).run();
+      const result=await env.DB.prepare("INSERT OR IGNORE INTO members(email,display_name,section_id,role,active,section_confirmed) VALUES(?,?,?,'member',1,0)").bind(m.email,m.name,section).run();
       if(result.meta?.changes===1)added++;else skipped++;
      }catch(e){console.error('Bulk member insert failed',e?.message||e);errors.push(`Could not add ${m.email}`)}
     }
     return json({ok:errors.length===0,added,skipped,errors});
    }
   if(path==='/members'&&method==='POST'){
-   if(!admin(user))return json({error:'Forbidden'},403);const d=await body(request);const email=String(d?.email||'').trim().toLowerCase(),name=String(d?.display_name||'').trim();const section=Number(d?.section_id||user.section_id);
+   if(!admin(user))return json({error:'Forbidden'},403);const d=await body(request);const email=String(d?.email||'').trim().toLowerCase(),name=String(d?.display_name||'').trim();const section=Number(d?.section_id);
    if(!emailOK(email)||!name||name.length>100||!Number.isInteger(section)||section<1)return json({error:'Valid name, email and section required'},400);
    if(!admin(user)&&section!==user.section_id)return json({error:'Cannot add members to another section'},403);
    const sec=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();if(!sec)return json({error:'Section not found'},404);
@@ -101,7 +111,7 @@ export async function onRequest({request,env,params}){
    if(!owner(user)&&role==='admin'&&target.role!=='admin')return json({error:'Additional band administrators must be provisioned separately'},403);
    if(id===user.id&&(!active||role!==user.role||section!==user.section_id))return json({error:'You cannot deactivate or change your own access'},400);
    const sec=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();if(!sec)return json({error:'Section not found'},404);
-   try{await env.DB.prepare('UPDATE members SET display_name=?,email=?,active=?,role=?,section_id=? WHERE id=?').bind(name,email,active,role,section,id).run()}catch{return json({error:'Email already in use'},409)}
+   try{await env.DB.prepare('UPDATE members SET display_name=?,email=?,active=?,role=?,section_id=?,section_confirmed=1 WHERE id=?').bind(name,email,active,role,section,id).run()}catch{return json({error:'Email already in use'},409)}
    if(!active)await env.DB.prepare('DELETE FROM sessions WHERE member_id=?').bind(id).run();return json({ok:true})
   }
   if(path==='/events'&&method==='POST'){
