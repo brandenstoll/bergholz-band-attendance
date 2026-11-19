@@ -5,10 +5,24 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Bergholz Band">
- <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bergholz German Band | Attendance</title><style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bergholz German Band | Attendance</title><style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#302522;background:#faf7f2}*{box-sizing:border-box}body{margin:0}header{background:#861d28;color:white;padding:22px max(18px,calc((100vw - 1100px)/2))}header h1{margin:0;font-size:1.6rem}header p{margin:5px 0 0;color:#f5d6d2}main{max-width:1100px;margin:24px auto;padding:0 16px}.panel{background:white;border:1px solid #e6ded6;border-radius:15px;padding:20px;margin-bottom:18px;box-shadow:0 2px 9px #3211}h2{margin:0 0 12px}h3{margin:15px 0 10px}button,input,select,textarea{font:inherit;border-radius:8px;padding:10px;border:1px solid #cfc6bf}button{background:#861d28;color:white;border:0;cursor:pointer}button.secondary{background:#eee6df;color:#342b28}button.active{background:#861d28;color:white}button:disabled{opacity:.5;cursor:not-allowed}input,select,textarea{max-width:100%;min-width:0}input[type=email],input[name=display_name],input[name=title]{width:250px}textarea{width:100%;min-height:75px}label{display:grid;gap:4px;font-size:.91rem;font-weight:600}.form{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.form label{flex:1 1 180px}.form button{align-self:end}.muted{color:#766c66}.small{font-size:.86rem}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.day{min-height:90px;border:1px solid #e7dfd8;border-radius:8px;padding:7px;font-size:13px;overflow:hidden}.day.empty{background:#faf8f6;border:0}.event{display:block;width:100%;text-align:left;background:#f3dedc;color:#6e1921;border-radius:5px;padding:5px;margin-top:4px;font-size:11px;border:0;overflow-wrap:anywhere}.event.performance{background:#ead7a7;color:#4b370d}.event.cancelled{background:#eee;color:#666;text-decoration:line-through}.days{font-size:12px;text-align:center;color:#7b716b;padding:7px 0}.list{display:grid;gap:9px}.item{padding:13px;border:1px solid #e6ded6;border-radius:9px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.pills{display:flex;gap:7px;flex-wrap:wrap}.pill{background:#f4eee8;border-radius:100px;padding:6px 10px;font-size:.85rem}.pill strong{color:#861d28}.notice{min-height:1.3em;color:#861d28}.hidden{display:none!important}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}.roster{display:grid;gap:7px}.rosterline{padding:8px 0;border-bottom:1px solid #eee6df}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.91rem}th,td{padding:10px;border-bottom:1px solid #e9e1db;text-align:left}th{background:#faf7f2}.rowactions{display:flex;gap:7px;flex-wrap:wrap}.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.danger{color:#861d28}.subpanel{border:1px solid #e9e1db;border-radius:10px;padding:14px;margin-top:12px}.counts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.counts .pill{font-weight:600}#notice{margin-top:10px}@media(max-width:650px){.day{min-height:65px;padding:3px;font-size:11px}.event{font-size:9px;padding:3px}.panel{padding:13px}header{padding:20px}.form label{flex:1 1 100%}.toolbar{align-items:start}.item{align-items:start}}
 header .brand-row{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}header .brand-main{display:flex;align-items:center;gap:16px;min-width:0}header .brand-logo{width:92px;height:92px;object-fit:contain;border-radius:12px}header .hall-logo{width:110px;height:110px;object-fit:contain;border-radius:12px}header .brand-copy{min-width:0}@media(max-width:650px){header .brand-logo{width:65px;height:65px}header .hall-logo{width:82px;height:82px}header .brand-row{gap:12px}header .brand-main{gap:10px}header h1{font-size:1.3rem}}
 </style></head><body><header><div class="brand-row"><div class="brand-main"><img class="brand-logo" src="/images/bergholz-logo.jpg" alt="Bergholz Blaskapelle logo"><div class="brand-copy"><h1>Bergholz German Band</h1><p>Rehearsal & Performance Attendance</p></div></div><img class="hall-logo" src="/images/bergholz-hall-of-fame.jpeg" alt="Buffalo Music Hall of Fame 2026 Inductee"></div></header><main>
+<section class="panel" id="install-app-panel">
+  <div class="sectionhead">
+    <div>
+      <h2>Bergholz Band Mobile App</h2>
+      <p class="muted">Install our attendance app on your phone for easy access to rehearsals, performances, and attendance.</p>
+    </div>
+    <button type="button" id="install-app-button" aria-expanded="false" aria-controls="install-app-instructions">Install App</button>
+  </div>
+  <div id="install-app-instructions" class="hidden" style="margin-top:12px">
+    <h3>How to install</h3>
+    <p id="install-app-message"></p>
+  </div>
+</section>
+
 <section class="panel" id="auth"><div class="sectionhead"><h2>Member account</h2><div id="account" class="hidden"><span id="identity"></span> <button class="secondary" id="logout">Sign out</button></div></div><div id="login"><p class="muted">Approved members receive a six-digit sign-in code by email.</p><input type="email" id="email" placeholder="Email address" autocomplete="email"> <button id="send">Send code</button><div id="verify" class="hidden" style="margin-top:10px"><input id="code" inputmode="numeric" maxlength="6" placeholder="Six-digit code" autocomplete="one-time-code"> <button id="confirm">Verify</button></div></div><p class="notice" id="notice" aria-live="polite"></p></section>
 <section class="panel hidden" id="section-onboarding"><h2>Select Your Section</h2><p class="muted">Please choose your instrument group before using attendance. Your selection will be saved. An administrator can correct it later.</p><form id="section-onboarding-form" class="form"><label>Instrument group<select id="onboarding-section" required><option value="" selected disabled>Select Your Section</option></select></label><button type="submit">Save Section</button></form><p class="notice" id="section-onboarding-message" aria-live="polite"></p></section>
 <section class="panel"><div class="toolbar"><div><h2>Band calendar</h2><span class="muted small">Tentative 2026–2027 schedule · Subject to change</span></div><div class="rowactions"><button class="secondary" id="prev" aria-label="Previous month">‹</button><strong id="month"></strong><button class="secondary" id="next" aria-label="Next month">›</button><button class="secondary" id="today">Today</button></div></div><p class="small muted">Red = rehearsal · Gold = performance · Gray = cancelled</p><div class="grid" id="calendar"></div></section>
@@ -76,5 +90,46 @@ $('edit-event').onchange=()=>{const id=Number($('edit-event').value);id?editEven
 init().catch(e=>$('notice').textContent=e.message);
 </script>
 <script src="/attendance-section-update.js"></script>
+<script>
+// Mobile installation: prompt when supported, otherwise show device-specific steps.
+(() => {
+  const panel = document.getElementById('install-app-panel');
+  const button = document.getElementById('install-app-button');
+  const instructions = document.getElementById('install-app-instructions');
+  const message = document.getElementById('install-app-message');
+  let deferredInstallPrompt = null;
+  const installed = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const updateVisibility = () => { panel.classList.toggle('hidden', installed()); };
+  updateVisibility();
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    panel.classList.add('hidden');
+  });
+  button.addEventListener('click', async () => {
+    if (deferredInstallPrompt) {
+      const prompt = deferredInstallPrompt;
+      deferredInstallPrompt = null;
+      await prompt.prompt();
+      return;
+    }
+    const ua = navigator.userAgent;
+    const isIOS = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/i.test(ua);
+    if (isIOS) {
+      message.textContent = 'On iPhone or iPad: open this website in Safari, tap Share, choose Add to Home Screen, then tap Add.';
+    } else if (isAndroid) {
+      message.textContent = 'On Android: open this website in Chrome, tap the three-dot menu, then choose Install app or Add to Home screen.';
+    } else {
+      message.textContent = 'Open this website in a compatible browser and use its Install app or Add to Home Screen option.';
+    }
+    instructions.classList.remove('hidden');
+    button.setAttribute('aria-expanded', 'true');
+  });
+})();
+</script>
 </body>
 </html>
