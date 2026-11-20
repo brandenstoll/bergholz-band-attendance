@@ -1,0 +1,10 @@
+
+{
+  "name": "bergholz-band-attendance",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@simplewebauthn/server": "^13.2.2"
+  }
+}
