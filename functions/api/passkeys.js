@@ -159,6 +159,52 @@ export async function onRequest({ request, env }) {
       return json({ error: "Invalid request data" }, 400);
     }
 
+    // Passkey management: authenticated members only.
+    if (action === "list") {
+      const user = await currentUser(request, env);
+
+      if (!user) {
+        return json({ error: "Sign in required" }, 401);
+      }
+
+      const result = await env.DB.prepare(`
+        SELECT id, device_name, created_at, last_used_at
+        FROM member_passkeys
+        WHERE member_id = ?
+        ORDER BY created_at DESC, id DESC
+      `).bind(user.id).all();
+
+      return json({ passkeys: result.results });
+    }
+
+    if (action === "rename") {
+      const user = await currentUser(request, env);
+
+      if (!user) {
+        return json({ error: "Sign in required" }, 401);
+      }
+
+      const id = Number(data.id);
+      const name = String(data.device_name || "").trim();
+
+      if (!Number.isSafeInteger(id) || id < 1 ||
+          !name || name.length > 60) {
+        return json({ error: "Invalid passkey details" }, 400);
+      }
+
+      const result = await env.DB.prepare(`
+        UPDATE member_passkeys
+        SET device_name = ?
+        WHERE id = ? AND member_id = ?
+      `).bind(name, id, user.id).run();
+
+      if (result.meta.changes !== 1) {
+        return json({ error: "Passkey not found" }, 404);
+      }
+
+      return json({ ok: true });
+    }
+
     // 1. Start registration: existing login required.
     if (action === "register-options") {
       const user = await currentUser(request, env);
