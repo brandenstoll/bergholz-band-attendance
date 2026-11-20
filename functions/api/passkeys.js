@@ -205,6 +205,112 @@ export async function onRequest({ request, env }) {
       return json({ ok: true });
     }
 
+    // Begin removal: verify identity with an existing passkey.
+    if (action === "remove-options") {
+      const user = await currentUser(request, env);
+      if (!user) return json({ error: "Sign in required" }, 401);
+
+      const id = Number(data.id);
+      if (!Number.isSafeInteger(id) || id < 1) {
+        return json({ error: "Invalid passkey ID" }, 400);
+      }
+
+      const existing = await env.DB.prepare(`
+        SELECT id, credential_id
+        FROM member_passkeys
+        WHERE member_id = ?
+      `).bind(user.id).all();
+
+      if (!existing.results.some(p => p.id === id)) {
+        return json({ error: "Passkey not found" }, 404);
+      }
+
+      const options = await generateAuthenticationOptions({
+        rpID: RP_ID,
+        userVerification: "required",
+        allowCredentials: existing.results.map(p => ({
+          id: p.credential_id
+        }))
+      });
+
+      await saveChallenge(
+        env, options.challenge, user.id, "authentication"
+      );
+
+      return json({ options }, 200, {
+        "Set-Cookie": challengeCookie(options.challenge)
+      });
+    }
+
+    // Finish removal only after verifying the signed-in member.
+    if (action === "remove-verify") {
+      const user = await currentUser(request, env);
+      if (!user) return json({ error: "Sign in required" }, 401);
+
+      const id = Number(data.id);
+      if (!Number.isSafeInteger(id) || id < 1) {
+        return json({ error: "Invalid passkey ID" }, 400);
+      }
+
+      const saved = await consumeChallenge(
+        request, env, "authentication"
+      );
+
+      if (!saved || saved.member_id !== user.id) {
+        return json({ error: "Verification expired" }, 400, {
+          "Set-Cookie": clearChallengeCookie
+        });
+      }
+
+      const stored = await env.DB.prepare(`
+        SELECT *
+        FROM member_passkeys
+        WHERE credential_id = ? AND member_id = ?
+      `).bind(String(data.response?.id || ""), user.id).first();
+
+      if (!stored) {
+        return json({ error: "Passkey not recognized" }, 401);
+      }
+
+      const verified = await verifyAuthenticationResponse({
+        response: data.response,
+        expectedChallenge: saved.challenge,
+        expectedOrigin: ORIGIN,
+        expectedRPID: RP_ID,
+        requireUserVerification: true,
+        credential: {
+          id: stored.credential_id,
+          publicKey: fromBase64URL(stored.public_key),
+          counter: stored.counter
+        }
+      });
+
+      if (!verified.verified) {
+        return json({ error: "Verification failed" }, 401);
+      }
+
+      await env.DB.prepare(`
+        UPDATE member_passkeys
+        SET counter = ?, last_used_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).bind(
+        verified.authenticationInfo.newCounter, stored.id
+      ).run();
+
+      const result = await env.DB.prepare(`
+        DELETE FROM member_passkeys
+        WHERE id = ? AND member_id = ?
+      `).bind(id, user.id).run();
+
+      if (result.meta.changes !== 1) {
+        return json({ error: "Passkey not found" }, 404);
+      }
+
+      return json({ ok: true }, 200, {
+        "Set-Cookie": clearChallengeCookie
+      });
+    }
+
     // 1. Start registration: existing login required.
     if (action === "register-options") {
       const user = await currentUser(request, env);
