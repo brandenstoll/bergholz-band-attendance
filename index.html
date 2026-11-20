@@ -53,7 +53,11 @@ header .brand-main{display:flex;align-items:center;gap:16px;min-width:0}header .
   </div>
 </section>
 
-<section class="panel" id="auth"><div class="sectionhead"><h2>Member account</h2><div id="account" class="hidden"><span id="identity"></span> <button class="secondary" id="logout">Sign out</button></div></div><div id="login"><p class="muted">Approved members receive a six-digit sign-in code by email.</p><input type="email" id="email" placeholder="Email address" autocomplete="email"> <button id="send">Send code</button><div id="verify" class="hidden" style="margin-top:10px"><input id="code" inputmode="numeric" maxlength="6" placeholder="Six-digit code" autocomplete="one-time-code"> <button id="confirm">Verify</button></div><div style="margin-top:15px;border-top:1px solid #e6ded6;padding-top:14px"><button type="button" id="passkey-login" class="secondary">Sign in with Passkey</button><p class="muted small">Already set up a passkey? Use your device unlock to sign in.</p></div></div><div id="passkey-setup" class="hidden subpanel"><h3>Passkey sign-in</h3><p class="muted small">Set up a passkey on this device to sign in with your fingerprint, face unlock, or screen-lock PIN. Email codes remain available as a backup.</p><button type="button" id="passkey-register">Set Up Passkey</button><p class="notice" id="passkey-message" aria-live="polite"></p></div><p class="notice" id="notice" aria-live="polite"></p></section>
+<section class="panel" id="auth"><div class="sectionhead"><h2>Member account</h2><div id="account" class="hidden"><span id="identity"></span> <button class="secondary" id="logout">Sign out</button></div></div><div id="login"><p class="muted">Approved members receive a six-digit sign-in code by email.</p><input type="email" id="email" placeholder="Email address" autocomplete="email"> <button id="send">Send code</button><div id="verify" class="hidden" style="margin-top:10px"><input id="code" inputmode="numeric" maxlength="6" placeholder="Six-digit code" autocomplete="one-time-code"> <button id="confirm">Verify</button></div><div style="margin-top:15px;border-top:1px solid #e6ded6;padding-top:14px"><button type="button" id="passkey-login" class="secondary">Sign in with Passkey</button><p class="muted small">Already set up a passkey? Use your device unlock to sign in.</p></div></div><div id="passkey-setup" class="hidden subpanel"><h3>Passkey sign-in</h3><p class="muted small">Set up a passkey on this device to sign in with your fingerprint, face unlock, or screen-lock PIN. Email codes remain available as a backup.</p><button type="button" id="passkey-register">Set Up Passkey</button><p class="notice" id="passkey-message" aria-live="polite"></p>
+<div class="subpanel" id="passkey-management">
+  <div class="sectionhead"><div><h3>Manage Passkeys</h3><p class="muted small">View, rename, or remove passkeys registered to your account.</p></div><button type="button" class="secondary" id="passkey-manage-toggle" aria-expanded="false" aria-controls="passkey-manage-content">Manage Passkeys</button></div>
+  <div id="passkey-manage-content" class="hidden"><div class="rowactions" style="margin:10px 0"><button type="button" class="secondary" id="passkey-refresh">Refresh List</button></div><div id="passkey-list" class="list"></div><p class="notice" id="passkey-manage-message" aria-live="polite"></p><p class="muted small">Removing a passkey from this account does not delete it from your device's passkey manager. Email sign-in remains available.</p></div>
+</div></div><p class="notice" id="notice" aria-live="polite"></p></section>
 
 <section class="panel hidden" id="contact-panel">
  <div class="sectionhead"><div><h2>Contact / Report an Issue</h2><p class="muted small">Report a problem or request a change. Your name and email are included automatically.</p></div><button type="button" id="contact-toggle" class="secondary" aria-expanded="false">Open Contact Form</button></div>
@@ -317,6 +321,132 @@ init().catch(e=>$('notice').textContent=e.message);
     } finally {
       loginButton.disabled = false;
     }
+  });
+})();
+</script>
+<script>
+// Passkey account management. Existing login and registration are unchanged.
+(() => {
+  const el = id => document.getElementById(id);
+  const toggle = el('passkey-manage-toggle');
+  const content = el('passkey-manage-content');
+  const list = el('passkey-list');
+  const message = el('passkey-manage-message');
+  const refresh = el('passkey-refresh');
+  const supported = !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+  const from64 = value => {
+    const padded = value.replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(padded.padEnd(Math.ceil(padded.length / 4) * 4, '='));
+    return Uint8Array.from(binary, c => c.charCodeAt(0));
+  };
+  const to64 = buffer => {
+    let binary = '';
+    for (const byte of new Uint8Array(buffer)) binary += String.fromCharCode(byte);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  };
+  async function request(action, payload = {}) {
+    const response = await fetch('/api/passkeys?action=' + encodeURIComponent(action), {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Passkey request failed');
+    return data;
+  }
+  function dateText(value) {
+    if (!value) return 'Never';
+    const date = new Date(String(value).replace(' ', 'T') + (String(value).includes('Z') ? '' : 'Z'));
+    return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+  }
+  async function loadPasskeys() {
+    message.textContent = 'Loading passkeys…';
+    refresh.disabled = true;
+    try {
+      const data = await request('list');
+      list.replaceChildren();
+      const passkeys = data.passkeys || [];
+      if (!passkeys.length) {
+        const empty = document.createElement('p');
+        empty.className = 'muted';
+        empty.textContent = 'No passkeys registered. Use Set Up Passkey above to add one.';
+        list.append(empty);
+      }
+      for (const passkey of passkeys) {
+        const row = document.createElement('div');
+        row.className = 'item';
+        const details = document.createElement('div');
+        const name = document.createElement('strong');
+        name.textContent = passkey.device_name || 'Passkey';
+        const dates = document.createElement('div');
+        dates.className = 'muted small';
+        dates.textContent = 'Added: ' + dateText(passkey.created_at) + ' · Last used: ' + dateText(passkey.last_used_at);
+        details.append(name, dates);
+        const actions = document.createElement('div');
+        actions.className = 'rowactions';
+        const rename = document.createElement('button');
+        rename.type = 'button'; rename.className = 'secondary'; rename.textContent = 'Rename';
+        rename.addEventListener('click', async () => {
+          const newName = prompt('Name this passkey:', passkey.device_name || 'Passkey');
+          if (newName === null) return;
+          const trimmed = newName.trim();
+          if (!trimmed || trimmed.length > 60) { message.textContent = 'Enter a name between 1 and 60 characters.'; return; }
+          rename.disabled = true;
+          try { await request('rename', { id: passkey.id, device_name: trimmed }); await loadPasskeys(); message.textContent = 'Passkey renamed.'; }
+          catch (error) { message.textContent = error.message; rename.disabled = false; }
+        });
+        const remove = document.createElement('button');
+        remove.type = 'button'; remove.className = 'secondary'; remove.textContent = 'Remove';
+        remove.disabled = !supported;
+        remove.addEventListener('click', async () => {
+          if (!confirm('Remove "' + (passkey.device_name || 'Passkey') + '" from your account? You will need another passkey to verify. Email sign-in will remain available.')) return;
+          remove.disabled = true;
+          message.textContent = 'Verify your identity with a registered passkey…';
+          try {
+            const { options } = await request('remove-options', { id: passkey.id });
+            options.challenge = from64(options.challenge);
+            if (options.allowCredentials) options.allowCredentials = options.allowCredentials.map(c => ({ ...c, id: from64(c.id) }));
+            const credential = await navigator.credentials.get({ publicKey: options });
+            if (!credential) throw new Error('No passkey was selected');
+            const response = {
+              id: credential.id, rawId: to64(credential.rawId), type: credential.type,
+              response: {
+                clientDataJSON: to64(credential.response.clientDataJSON),
+                authenticatorData: to64(credential.response.authenticatorData),
+                signature: to64(credential.response.signature),
+                userHandle: credential.response.userHandle ? to64(credential.response.userHandle) : undefined
+              },
+              clientExtensionResults: credential.getClientExtensionResults(),
+              authenticatorAttachment: credential.authenticatorAttachment || undefined
+            };
+            await request('remove-verify', { id: passkey.id, response });
+            await loadPasskeys();
+            message.textContent = 'Passkey removed from your account.';
+          } catch (error) {
+            message.textContent = error.name === 'NotAllowedError' ? 'Passkey verification cancelled or timed out.' : error.message;
+            remove.disabled = false;
+          }
+        });
+        actions.append(rename, remove);
+        row.append(details, actions);
+        list.append(row);
+      }
+      message.textContent = '';
+    } catch (error) {
+      message.textContent = 'Unable to load passkeys: ' + error.message;
+    } finally { refresh.disabled = false; }
+  }
+  toggle.addEventListener('click', () => {
+    const opening = content.classList.contains('hidden');
+    content.classList.toggle('hidden', !opening);
+    toggle.setAttribute('aria-expanded', String(opening));
+    toggle.textContent = opening ? 'Hide Passkeys' : 'Manage Passkeys';
+    if (opening) loadPasskeys();
+  });
+  refresh.addEventListener('click', loadPasskeys);
+  el('passkey-register').addEventListener('click', () => {
+    // Registration completes asynchronously in the existing handler; refresh manually afterward.
+    if (!content.classList.contains('hidden')) message.textContent = 'After registration, select Refresh List to see your new passkey.';
   });
 })();
 </script>
