@@ -53,7 +53,7 @@ header .brand-main{display:flex;align-items:center;gap:16px;min-width:0}header .
   </div>
 </section>
 
-<section class="panel" id="auth"><div class="sectionhead"><h2>Member account</h2><div id="account" class="hidden"><span id="identity"></span> <button class="secondary" id="logout">Sign out</button></div></div><div id="login"><p class="muted">Approved members receive a six-digit sign-in code by email.</p><input type="email" id="email" placeholder="Email address" autocomplete="email"> <button id="send">Send code</button><div id="verify" class="hidden" style="margin-top:10px"><input id="code" inputmode="numeric" maxlength="6" placeholder="Six-digit code" autocomplete="one-time-code"> <button id="confirm">Verify</button></div></div><p class="notice" id="notice" aria-live="polite"></p></section>
+<section class="panel" id="auth"><div class="sectionhead"><h2>Member account</h2><div id="account" class="hidden"><span id="identity"></span> <button class="secondary" id="logout">Sign out</button></div></div><div id="login"><p class="muted">Approved members receive a six-digit sign-in code by email.</p><input type="email" id="email" placeholder="Email address" autocomplete="email"> <button id="send">Send code</button><div id="verify" class="hidden" style="margin-top:10px"><input id="code" inputmode="numeric" maxlength="6" placeholder="Six-digit code" autocomplete="one-time-code"> <button id="confirm">Verify</button></div><div style="margin-top:15px;border-top:1px solid #e6ded6;padding-top:14px"><button type="button" id="passkey-login" class="secondary">Sign in with Passkey</button><p class="muted small">Already set up a passkey? Use your device unlock to sign in.</p></div></div><div id="passkey-setup" class="hidden subpanel"><h3>Passkey sign-in</h3><p class="muted small">Set up a passkey on this device to sign in with your fingerprint, face unlock, or screen-lock PIN. Email codes remain available as a backup.</p><button type="button" id="passkey-register">Set Up Passkey</button><p class="notice" id="passkey-message" aria-live="polite"></p></div><p class="notice" id="notice" aria-live="polite"></p></section>
 
 <section class="panel hidden" id="contact-panel">
  <div class="sectionhead"><div><h2>Contact / Report an Issue</h2><p class="muted small">Report a problem or request a change. Your name and email are included automatically.</p></div><button type="button" id="contact-toggle" class="secondary" aria-expanded="false">Open Contact Form</button></div>
@@ -118,7 +118,7 @@ async function loadOnboarding(){
  if(pending){const result=await api('/sections');$('onboarding-section').innerHTML='<option value="" disabled selected>Select Your Section</option>'+result.sections.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');}
 }
 $('section-onboarding-form').onsubmit=async ev=>{ev.preventDefault();const section_id=Number($('onboarding-section').value);if(!section_id){$('section-onboarding-message').textContent='Please select your section.';return}try{await send('/me/section',{section_id});$('section-onboarding-message').textContent='Section saved.';await init()}catch(e){$('section-onboarding-message').textContent=e.message}};
-async function init(){events=(await api('/events')).events;user=(await api('/me')).user;await loadAttendance();await loadOnboarding();$('login').classList.toggle('hidden',!!user);$('account').classList.toggle('hidden',!user);$('admin').classList.toggle('hidden',!leader()||user?.section_confirmed===false);document.querySelector('[data-tab="members"]').classList.toggle('hidden',!admin());document.querySelector('[data-tab="events"]').classList.toggle('hidden',!admin());$('access-tab-button').classList.toggle('hidden',!admin());$('identity').textContent=user?`Signed in: ${user.name} (${user.role})`:'';if(leader())await refreshLeader();else{members=[];sections=[]}render();await loadRequestsUI();if(selected)openEvent(selected.id)}
+async function init(){events=(await api('/events')).events;user=(await api('/me')).user;await loadAttendance();await loadOnboarding();$('login').classList.toggle('hidden',!!user);$('account').classList.toggle('hidden',!user);$('admin').classList.toggle('hidden',!leader()||user?.section_confirmed===false);document.querySelector('[data-tab="members"]').classList.toggle('hidden',!admin());document.querySelector('[data-tab="events"]').classList.toggle('hidden',!admin());$('access-tab-button').classList.toggle('hidden',!admin());$('identity').textContent=user?`Signed in: ${user.name} (${user.role})`:'';$('passkey-setup').classList.toggle('hidden',!user);if(leader())await refreshLeader();else{members=[];sections=[]}render();await loadRequestsUI();if(selected)openEvent(selected.id)}
 $('prev').onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()-1,1);render()};$('next').onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()+1,1);render()};$('today').onclick=()=>{const n=new Date();view=new Date(n.getFullYear(),n.getMonth(),1);render()};$('close-detail').onclick=()=>{$('detail').classList.add('hidden');selected=null};$('send').onclick=async()=>{try{$('notice').textContent='Sending…';const r=await send('/auth/request',{email:$('email').value});$('notice').textContent=r.message;$('verify').classList.remove('hidden')}catch(e){$('notice').textContent=e.message}};$('confirm').onclick=async()=>{try{await send('/auth/verify',{email:$('email').value,code:$('code').value});$('notice').textContent='Signed in.';await init()}catch(e){$('notice').textContent=e.message}};$('logout').onclick=async()=>{try{await api('/auth/logout',{method:'POST'});selected=null;$('detail').classList.add('hidden');await init()}catch(e){$('notice').textContent=e.message}};
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));for(const t of ['summary','members','events','access','requests'])$('tab-'+t).classList.toggle('hidden',b.dataset.tab!==t)});$('summary-event').onchange=renderSummary;$('member-filter').onchange=renderMembers;$('member-cancel').onclick=resetMember;
 $('member-form').onsubmit=async ev=>{ev.preventDefault();const f=ev.target;const data=Object.fromEntries(new FormData(f));if(admin()&&!data.section_id){$('member-msg').textContent='Please select a section.';return}if(!admin()){delete data.section_id;delete data.role}try{await send(editingMember?'/members/'+editingMember:'/members',data,editingMember?'PATCH':'POST');resetMember();await refreshLeader();$('member-msg').textContent='Member saved.'}catch(e){$('member-msg').textContent=e.message}};
@@ -212,6 +212,111 @@ init().catch(e=>$('notice').textContent=e.message);
     }
     instructions.classList.remove('hidden');
     button.setAttribute('aria-expanded', 'true');
+  });
+})();
+</script>
+<script>
+// Passkey UI: uses native browser WebAuthn; no external client-side library.
+(() => {
+  const byId = id => document.getElementById(id);
+  const loginButton = byId('passkey-login');
+  const registerButton = byId('passkey-register');
+  const supported = !!(window.PublicKeyCredential && navigator.credentials && window.isSecureContext);
+  if (!supported) {
+    loginButton.disabled = true;
+    registerButton.disabled = true;
+    loginButton.title = 'Passkeys are not supported in this browser';
+    return;
+  }
+  const from64 = value => {
+    const padded = value.replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(padded.padEnd(Math.ceil(padded.length / 4) * 4, '='));
+    return Uint8Array.from(binary, ch => ch.charCodeAt(0));
+  };
+  const to64 = buffer => {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  };
+  async function request(action, payload = {}) {
+    const response = await fetch('/api/passkeys?action=' + encodeURIComponent(action), {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'Passkey request failed');
+    return data;
+  }
+  const describeError = error => error?.name === 'NotAllowedError'
+    ? 'Passkey operation was cancelled or timed out.'
+    : error?.message || 'Passkey operation failed.';
+  registerButton.addEventListener('click', async () => {
+    const message = byId('passkey-message');
+    registerButton.disabled = true;
+    message.textContent = 'Preparing passkey registration…';
+    try {
+      const { options } = await request('register-options');
+      options.challenge = from64(options.challenge);
+      options.user.id = from64(options.user.id);
+      if (options.excludeCredentials) {
+        options.excludeCredentials = options.excludeCredentials.map(c => ({...c, id: from64(c.id)}));
+      }
+      const credential = await navigator.credentials.create({ publicKey: options });
+      if (!credential) throw new Error('No passkey was created');
+      const response = {
+        id: credential.id,
+        rawId: to64(credential.rawId),
+        type: credential.type,
+        response: {
+          clientDataJSON: to64(credential.response.clientDataJSON),
+          attestationObject: to64(credential.response.attestationObject),
+          transports: credential.response.getTransports?.() || []
+        },
+        clientExtensionResults: credential.getClientExtensionResults(),
+        authenticatorAttachment: credential.authenticatorAttachment || undefined
+      };
+      await request('register-verify', response);
+      message.textContent = 'Passkey registered! You can use Sign in with Passkey next time.';
+    } catch (error) {
+      message.textContent = describeError(error);
+    } finally {
+      registerButton.disabled = false;
+    }
+  });
+  loginButton.addEventListener('click', async () => {
+    const message = byId('notice');
+    loginButton.disabled = true;
+    message.textContent = 'Waiting for your passkey…';
+    try {
+      const { options } = await request('login-options');
+      options.challenge = from64(options.challenge);
+      if (options.allowCredentials) {
+        options.allowCredentials = options.allowCredentials.map(c => ({...c, id: from64(c.id)}));
+      }
+      const credential = await navigator.credentials.get({ publicKey: options });
+      if (!credential) throw new Error('No passkey was selected');
+      await request('login-verify', {
+        id: credential.id,
+        rawId: to64(credential.rawId),
+        type: credential.type,
+        response: {
+          clientDataJSON: to64(credential.response.clientDataJSON),
+          authenticatorData: to64(credential.response.authenticatorData),
+          signature: to64(credential.response.signature),
+          userHandle: credential.response.userHandle ? to64(credential.response.userHandle) : undefined
+        },
+        clientExtensionResults: credential.getClientExtensionResults(),
+        authenticatorAttachment: credential.authenticatorAttachment || undefined
+      });
+      message.textContent = 'Signed in with passkey.';
+      await init();
+    } catch (error) {
+      message.textContent = describeError(error);
+    } finally {
+      loginButton.disabled = false;
+    }
   });
 })();
 </script>
