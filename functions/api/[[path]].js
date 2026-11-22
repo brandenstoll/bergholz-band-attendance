@@ -65,7 +65,18 @@ export async function onRequest({request,env,params}){
   }
   if(path==='/members'&&method==='GET'){
    if(!user)return json({error:'Unauthorized'},401);
-   const rows=await env.DB.prepare("SELECT id,display_name,email,section_id,section_confirmed,role,active FROM members WHERE section_id=? OR ?=1 ORDER BY display_name").bind(user.section_id,admin(user)?1:0).all();return json({members:rows.results})
+   
+const rows = await env.DB.prepare(
+  `SELECT m.id, m.display_name, m.email,
+          m.section_id, s.name AS section_name,
+          m.section_confirmed, m.role, m.active
+   FROM members m
+   LEFT JOIN sections s ON s.id = m.section_id
+   WHERE m.active = 1
+   ORDER BY m.display_name`
+).all();
+return json({members: rows.results});
+
   }
    if(path==='/members/bulk'&&method==='POST'){
     if(!admin(user))return json({error:'Forbidden'},403);
