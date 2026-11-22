@@ -64,7 +64,7 @@ export async function onRequest({request,env,params}){
    await env.DB.prepare('INSERT INTO attendance(event_id,member_id,response) VALUES(?,?,?) ON CONFLICT(event_id,member_id) DO UPDATE SET response=excluded.response,updated_at=CURRENT_TIMESTAMP').bind(d.event_id,targetId,d.response).run();return json({ok:true})
   }
   if(path==='/members'&&method==='GET'){
-   if(!leader(user))return json({error:'Forbidden'},403);
+   if(!user)return json({error:'Unauthorized'},401);
    const rows=await env.DB.prepare("SELECT id,display_name,email,section_id,section_confirmed,role,active FROM members WHERE section_id=? OR ?=1 ORDER BY display_name").bind(user.section_id,admin(user)?1:0).all();return json({members:rows.results})
   }
    if(path==='/members/bulk'&&method==='POST'){
