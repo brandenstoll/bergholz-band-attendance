@@ -866,6 +866,21 @@ header .brand-copy { min-width: 0; }
 
   views.attendance.prepend(attendancePanel);
 
+  // Create the Members directory page.
+  const membersPanel = document.createElement('section');
+  membersPanel.className = 'panel';
+  membersPanel.innerHTML = `
+    <h2>Band Members</h2>
+    <p class="muted">
+      View band members, email addresses, and instrument sections.
+    </p>
+    <div id="member-directory" class="list">
+      Loading members...
+    </div>
+  `;
+
+  views.members.append(membersPanel);
+
   // Create the welcome section.
   const homeWelcome = document.createElement('section');
 
@@ -887,17 +902,11 @@ header .brand-copy { min-width: 0; }
   // Change the currently displayed page.
   window.showPortalView = function (view) {
 
-    if (view === 'members') {
-      if (!window.userIsAdminForNav?.()) return;
+    
+if (view === 'members') {
+  if (!user) return;
+}
 
-      view = 'admin';
-
-      const tab = document.querySelector(
-        '[data-tab="members"]'
-      );
-
-      if (tab) tab.click();
-    }
 
     if (
       view === 'admin' &&
@@ -922,17 +931,7 @@ header .brand-copy { min-width: 0; }
 
     // Highlight the selected navigation button.
     document.querySelectorAll('[data-view]').forEach(button => {
-
-      if (
-        button.dataset.view === view ||
-        (
-          view === 'admin' &&
-          button.dataset.view === 'members' &&
-          document.querySelector(
-            '[data-tab="members"]'
-          )?.classList.contains('active')
-        )
-      ) {
+if (button.dataset.view === view) {
         button.setAttribute('aria-current', 'page');
       } else {
         button.removeAttribute('aria-current');
@@ -953,7 +952,7 @@ header .brand-copy { min-width: 0; }
     const admin = !!window.userIsAdminForNav?.();
 
     const permissions = {
-      members: admin,
+      members: signed,
       admin: leader,
       requests: signed
     };
@@ -967,11 +966,11 @@ header .brand-copy { min-width: 0; }
         button.classList.toggle('hidden', !visible);
       }
     }
-
-    if (
-      (active === 'admin' && !leader) ||
-      (active === 'requests' && !signed)
-    ) {
+if (
+  (active === 'admin' && !leader) ||
+  (active === 'requests' && !signed) ||
+  (active === 'members' && !signed)
+) {
       window.showPortalView('home');
     }
   };
