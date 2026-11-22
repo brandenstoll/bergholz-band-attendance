@@ -881,6 +881,54 @@ header .brand-copy { min-width: 0; }
 
   views.members.append(membersPanel);
 
+  // Load the read-only member directory.
+  window.loadMemberDirectory = async function () {
+    const directory = document.getElementById('member-directory');
+    if (!directory) return;
+
+    directory.textContent = 'Loading members...';
+
+    try {
+      const response = await fetch('/api/members', {
+        credentials: 'same-origin'
+      });
+
+      if (!response.ok) throw new Error('Unable to load members');
+
+      const data = await response.json();
+      const members = data.members || [];
+
+      directory.replaceChildren();
+
+      if (!members.length) {
+        directory.textContent = 'No members found.';
+        return;
+      }
+
+      for (const member of members) {
+        const entry = document.createElement('div');
+        entry.className = 'panel';
+
+        const name = document.createElement('strong');
+        name.textContent = member.display_name || 'Unnamed member';
+
+        const email = document.createElement('div');
+        email.textContent = member.email || '';
+
+        const section = document.createElement('div');
+        section.className = 'muted small';
+        section.textContent =
+          member.section_name || 'Section not assigned';
+
+        entry.append(name, email, section);
+        directory.append(entry);
+      }
+    } catch (error) {
+      directory.textContent = 'Unable to load the member directory.';
+      console.error(error);
+    }
+  };
+
   // Create the welcome section.
   const homeWelcome = document.createElement('section');
 
@@ -902,11 +950,10 @@ header .brand-copy { min-width: 0; }
   // Change the currently displayed page.
   window.showPortalView = function (view) {
 
-    
 if (view === 'members') {
   if (!user) return;
+  window.loadMemberDirectory();
 }
-
 
     if (
       view === 'admin' &&
