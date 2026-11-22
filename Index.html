@@ -1,12 +1,215 @@
-<!doctype html><html lang="en"><head>
+
+<!doctype html>
+<html lang="en">
+<head>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#9b2929">
 <link rel="apple-touch-icon" href="/bergholz-icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Bergholz Band">
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bergholz German Band | Attendance</title><style>
-:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#302522;background:#faf7f2}*{box-sizing:border-box}body{margin:0}header{background:#861d28;color:white;padding:22px max(18px,calc((100vw - 1100px)/2))}header h1{margin:0;font-size:1.6rem}header p{margin:5px 0 0;color:#f5d6d2}main{max-width:1100px;margin:24px auto;padding:0 16px}.panel{background:white;border:1px solid #e6ded6;border-radius:15px;padding:20px;margin-bottom:18px;box-shadow:0 2px 9px #3211}h2{margin:0 0 12px}h3{margin:15px 0 10px}button,input,select,textarea{font:inherit;border-radius:8px;padding:10px;border:1px solid #cfc6bf}button{background:#861d28;color:white;border:0;cursor:pointer}button.secondary{background:#eee6df;color:#342b28}button.active{background:#861d28;color:white}button:disabled{opacity:.5;cursor:not-allowed}input,select,textarea{max-width:100%;min-width:0}input[type=email],input[name=display_name],input[name=title]{width:250px}textarea{width:100%;min-height:75px}label{display:grid;gap:4px;font-size:.91rem;font-weight:600}.form{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.form label{flex:1 1 180px}.form button{align-self:end}.muted{color:#766c66}.small{font-size:.86rem}.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.day{min-height:90px;border:1px solid #e7dfd8;border-radius:8px;padding:7px;font-size:13px;overflow:hidden}.day.empty{background:#faf8f6;border:0}.event{display:block;width:100%;text-align:left;background:#f3dedc;color:#6e1921;border-radius:5px;padding:5px;margin-top:4px;font-size:11px;border:0;overflow-wrap:anywhere}.event.performance{background:#ead7a7;color:#4b370d}.event.cancelled{background:#eee;color:#666;text-decoration:line-through}.days{font-size:12px;text-align:center;color:#7b716b;padding:7px 0}.list{display:grid;gap:9px}.item{padding:13px;border:1px solid #e6ded6;border-radius:9px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.pills{display:flex;gap:7px;flex-wrap:wrap}.pill{background:#f4eee8;border-radius:100px;padding:6px 10px;font-size:.85rem}.pill strong{color:#861d28}.notice{min-height:1.3em;color:#861d28}.hidden{display:none!important}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:15px}.roster{display:grid;gap:7px}.rosterline{padding:8px 0;border-bottom:1px solid #eee6df}.tablewrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.91rem}th,td{padding:10px;border-bottom:1px solid #e9e1db;text-align:left}th{background:#faf7f2}.rowactions{display:flex;gap:7px;flex-wrap:wrap}.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.danger{color:#861d28}.subpanel{border:1px solid #e9e1db;border-radius:10px;padding:14px;margin-top:12px}.counts{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.counts .pill{font-weight:600}#notice{margin-top:10px}@media(max-width:650px){.day{min-height:65px;padding:3px;font-size:11px}.event{font-size:9px;padding:3px}.panel{padding:13px}header{padding:20px}.form label{flex:1 1 100%}.toolbar{align-items:start}.item{align-items:start}}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bergholz German Band | Attendance</title>
+
+<style>
+:root {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  color: #302522;
+  background: #faf7f2;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+
+header {
+  background: #861d28;
+  color: white;
+  padding: 22px max(18px, calc((100vw - 1100px)/2));
+}
+
+header h1 { margin: 0; font-size: 1.6rem; }
+header p { margin: 5px 0 0; color: #f5d6d2; }
+
+main {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #e6ded6;
+  border-radius: 15px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 9px #3211;
+}
+
+h2 { margin: 0 0 12px; }
+h3 { margin: 15px 0 10px; }
+
+button, input, select, textarea {
+  font: inherit;
+  border-radius: 8px;
+  padding: 10px;
+  border: 1px solid #cfc6bf;
+}
+
+button {
+  background: #861d28;
+  color: white;
+  border: 0;
+  cursor: pointer;
+}
+
+button.secondary { background: #eee6df; color: #342b28; }
+button.active { background: #861d28; color: white; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+
+input, select, textarea {
+  max-width: 100%;
+  min-width: 0;
+}
+
+input[type=email],
+input[name=display_name],
+input[name=title] { width: 250px; }
+
+textarea { width: 100%; min-height: 75px; }
+
+label {
+  display: grid;
+  gap: 4px;
+  font-size: .91rem;
+  font-weight: 600;
+}
+
+.form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.form label { flex: 1 1 180px; }
+.form button { align-self: end; }
+
+.muted { color: #766c66; }
+.small { font-size: .86rem; }
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.day {
+  min-height: 90px;
+  border: 1px solid #e7dfd8;
+  border-radius: 8px;
+  padding: 7px;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.day.empty { background: #faf8f6; border: 0; }
+
+.event {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #f3dedc;
+  color: #6e1921;
+  border-radius: 5px;
+  padding: 5px;
+  margin-top: 4px;
+  font-size: 11px;
+  border: 0;
+  overflow-wrap: anywhere;
+}
+
+.event.performance { background: #ead7a7; color: #4b370d; }
+.event.cancelled { background: #eee; color: #666; text-decoration: line-through; }
+
+.days {
+  font-size: 12px;
+  text-align: center;
+  color: #7b716b;
+  padding: 7px 0;
+}
+
+.list { display: grid; gap: 9px; }
+
+.item {
+  padding: 13px;
+  border: 1px solid #e6ded6;
+  border-radius: 9px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pills { display: flex; gap: 7px; flex-wrap: wrap; }
+
+.pill {
+  background: #f4eee8;
+  border-radius: 100px;
+  padding: 6px 10px;
+  font-size: .85rem;
+}
+
+.pill strong { color: #861d28; }
+.notice { min-height: 1.3em; color: #861d28; }
+.hidden { display: none !important; }
+
+.tabs {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.roster { display: grid; gap: 7px; }
+.rosterline { padding: 8px 0; border-bottom: 1px solid #eee6df; }
+.tablewrap { overflow-x: auto; }
+
+table { width: 100%; border-collapse: collapse; font-size: .91rem; }
+th, td { padding: 10px; border-bottom: 1px solid #e9e1db; text-align: left; }
+th { background: #faf7f2; }
+
+.rowactions { display: flex; gap: 7px; flex-wrap: wrap; }
+
+.sectionhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.danger { color: #861d28; }
+
+.subpanel {
+  border: 1px solid #e9e1db;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.counts { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+.counts .pill { font-weight: 600; }
+#notice { margin-top: 10px; }
 
 header .brand-row {
   display: flex;
@@ -20,7 +223,7 @@ header .brand-row {
 header .brand-main {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   min-width: 0;
   flex: 1;
 }
@@ -29,41 +232,180 @@ header .hall-logo {
   margin-left: auto;
   flex-shrink: 0;
 }
-header .brand-main{display:flex;align-items:center;gap:16px;min-width:0}header .brand-logo{width:92px;height:92px;object-fit:contain;border-radius:12px}header .hall-logo{width:110px;height:110px;object-fit:contain;border-radius:12px}header .brand-copy{min-width:0}@media(max-width:650px){header .brand-logo{width:65px;height:65px}header .hall-logo{width:82px;height:82px}header .brand-row{gap:12px}header .brand-main{gap:10px}header h1{font-size:1.3rem}}
+
+header .brand-logo {
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+header .hall-logo {
+  width: 110px;
+  height: 110px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+header .brand-copy { min-width: 0; }
 
 /* Request management */
-.request-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0}
-.request-fields label{display:grid;gap:5px}
-.request-card{border:1px solid #e6ded6;border-radius:10px;padding:14px;margin:10px 0}
-.request-card p{white-space:pre-wrap;overflow-wrap:anywhere}
-.request-card .muted{font-size:.87rem}
-.request-status{font-weight:700;color:#861d28}
+.request-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 12px 0;
+}
 
-/* Mobile-first primary navigation */
-.primary-nav{position:sticky;top:0;z-index:30;background:#fffaf6;border-bottom:1px solid #e3d7ce;box-shadow:0 2px 9px #3212}
-.primary-nav-inner{max-width:1100px;margin:auto;display:flex;gap:10px;padding:10px 16px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
-.primary-nav button{flex:0 0 auto;min-width:110px;min-height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-weight:700;font-size:15px;border:2px solid #e5d8d0;background:#f5eee8;color:#4a3430;touch-action:manipulation}
-.primary-nav button[aria-current=page]{background:#861d28;color:#fff;border-color:#861d28}
-.primary-nav .nav-icon{font-size:23px;line-height:1}
-.portal-view{display:none}.portal-view.current-view{display:block}
-#attendance-event-list .item button{min-height:44px}
-@media(max-width:650px){header{padding:12px 16px}header .brand-logo{width:54px;height:54px}header .hall-logo{width:65px;height:65px}header h1{font-size:1.1rem}header p{font-size:.75rem}.primary-nav-inner{padding:8px 12px;gap:8px}.primary-nav button{min-width:108px;min-height:70px}}
-</style></head><body><header><div class="brand-row"><div class="brand-main"><img class="brand-logo" src="/images/bergholz-logo.jpg" alt="Bergholz Blaskapelle logo"><div class="brand-copy"><h1>Bergholz German Band</h1><p>Rehearsal & Performance Attendance</p></div></div><img class="hall-logo" src="/images/bergholz-hall-of-fame.jpeg" alt="Buffalo Music Hall of Fame 2026 Inductee"></div></header><nav class="primary-nav" aria-label="Main navigation"><div class="primary-nav-inner" id="primary-nav-buttons">
-<button type="button" data-view="home" aria-current="page"><span class="nav-icon" aria-hidden="true">⌂</span>Home</button>
-<button type="button" data-view="calendar"><span class="nav-icon" aria-hidden="true">▦</span>Calendar</button>
-<button type="button" data-view="attendance"><span class="nav-icon" aria-hidden="true">✓</span>Attendance</button>
-<button type="button" data-view="members" class="hidden"><span class="nav-icon" aria-hidden="true">♙</span>Members</button>
-<button type="button" data-view="admin" class="hidden"><span class="nav-icon" aria-hidden="true">⚙</span>Management</button>
-<button type="button" data-view="requests" class="hidden"><span class="nav-icon" aria-hidden="true">✉</span>Contact</button>
-<button type="button" data-view="account"><span class="nav-icon" aria-hidden="true">◉</span>My Account</button>
-</div></nav><main>
+.request-fields label { display: grid; gap: 5px; }
+
+.request-card {
+  border: 1px solid #e6ded6;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 10px 0;
+}
+
+.request-card p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.request-card .muted { font-size: .87rem; }
+.request-status { font-weight: 700; color: #861d28; }
+
+/* Large, mobile-friendly navigation */
+.primary-nav {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #fffaf6;
+  border-bottom: 1px solid #e3d7ce;
+  box-shadow: 0 2px 9px #3212;
+}
+
+.primary-nav-inner {
+  max-width: 1100px;
+  margin: auto;
+  display: flex;
+  gap: 10px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.primary-nav button {
+  flex: 0 0 auto;
+  min-width: 110px;
+  min-height: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 15px;
+  border: 2px solid #e5d8d0;
+  background: #f5eee8;
+  color: #4a3430;
+  touch-action: manipulation;
+}
+
+.primary-nav button[aria-current=page] {
+  background: #861d28;
+  color: #fff;
+  border-color: #861d28;
+}
+
+.primary-nav .nav-icon {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.portal-view { display: none; }
+.portal-view.current-view { display: block; }
+
+#attendance-event-list .item button { min-height: 44px; }
+
+@media(max-width:650px) {
+  .day { min-height: 65px; padding: 3px; font-size: 11px; }
+  .event { font-size: 9px; padding: 3px; }
+  .panel { padding: 13px; }
+  .form label { flex: 1 1 100%; }
+  .toolbar { align-items: start; }
+  .item { align-items: start; }
+
+  header { padding: 12px 16px; }
+  header .brand-logo { width: 54px; height: 54px; }
+  header .hall-logo { width: 65px; height: 65px; }
+  header .brand-row { gap: 12px; }
+  header .brand-main { gap: 10px; }
+  header h1 { font-size: 1.1rem; }
+  header p { font-size: .75rem; }
+
+  .primary-nav-inner { padding: 8px 12px; gap: 8px; }
+  .primary-nav button { min-width: 108px; min-height: 70px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="brand-row">
+    <div class="brand-main">
+      <img class="brand-logo"
+           src="/images/bergholz-logo.jpg"
+           alt="Bergholz Blaskapelle logo">
+      <div class="brand-copy">
+        <h1>Bergholz German Band</h1>
+        <p>Rehearsal &amp; Performance Attendance</p>
+      </div>
+    </div>
+    <img class="hall-logo"
+         src="/images/bergholz-hall-of-fame.jpeg"
+         alt="Buffalo Music Hall of Fame 2026 Inductee">
+  </div>
+</header>
+
+<nav class="primary-nav" aria-label="Main navigation">
+  <div class="primary-nav-inner" id="primary-nav-buttons">
+    <button type="button" data-view="home" aria-current="page">
+      <span class="nav-icon" aria-hidden="true">⌂</span>Home
+    </button>
+    <button type="button" data-view="calendar">
+      <span class="nav-icon" aria-hidden="true">▦</span>Calendar
+    </button>
+    <button type="button" data-view="attendance">
+      <span class="nav-icon" aria-hidden="true">✓</span>Attendance
+    </button>
+    <button type="button" data-view="members" class="hidden">
+      <span class="nav-icon" aria-hidden="true">♙</span>Members
+    </button>
+    <button type="button" data-view="admin" class="hidden">
+      <span class="nav-icon" aria-hidden="true">⚙</span>Management
+    </button>
+    <button type="button" data-view="requests" class="hidden">
+      <span class="nav-icon" aria-hidden="true">✉</span>Contact
+    </button>
+    <button type="button" data-view="account">
+      <span class="nav-icon" aria-hidden="true">◉</span>My Account
+    </button>
+  </div>
+</nav>
+
+<main>
+
 <section class="panel" id="install-app-panel">
   <div class="sectionhead">
     <div>
       <h2>Bergholz Band Mobile App</h2>
-      <p class="muted">Install our attendance app on your phone for easy access to rehearsals, performances, and attendance.</p>
+      <p class="muted">
+        Install our attendance app on your phone for easy access
+        to rehearsals, performances, and attendance.
+      </p>
     </div>
-    <button type="button" id="install-app-button" aria-expanded="false" aria-controls="install-app-instructions">Install App</button>
+    <button type="button" id="install-app-button"
+      aria-expanded="false"
+      aria-controls="install-app-instructions">
+      Install App
+    </button>
   </div>
   <div id="install-app-instructions" class="hidden" style="margin-top:12px">
     <h3>How to install</h3>
@@ -71,203 +413,2007 @@ header .brand-main{display:flex;align-items:center;gap:16px;min-width:0}header .
   </div>
 </section>
 
-<section class="panel" id="auth"><div class="sectionhead"><h2>Member account</h2><div id="account" class="hidden"><span id="identity"></span> <button class="secondary" id="logout">Sign out</button></div></div><div id="login"><p class="muted">Approved members receive a six-digit sign-in code by email.</p><input type="email" id="email" placeholder="Email address" autocomplete="email"> <button id="send">Send code</button><div id="verify" class="hidden" style="margin-top:10px"><input id="code" inputmode="numeric" maxlength="6" placeholder="Six-digit code" autocomplete="one-time-code"> <button id="confirm">Verify</button></div><div style="margin-top:15px;border-top:1px solid #e6ded6;padding-top:14px"><button type="button" id="passkey-login" class="secondary">Sign in with Passkey</button><p class="muted small">Already set up a passkey? Use your device unlock to sign in.</p></div></div><div id="passkey-setup" class="hidden subpanel"><h3>Passkey sign-in</h3><p class="muted small">Set up a passkey on this device to sign in with your fingerprint, face unlock, or screen-lock PIN. Email codes remain available as a backup.</p><button type="button" id="passkey-register">Set Up Passkey</button><p class="notice" id="passkey-message" aria-live="polite"></p>
-<div class="subpanel" id="passkey-management">
-  <div class="sectionhead"><div><h3>Manage Passkeys</h3><p class="muted small">View, rename, or remove passkeys registered to your account.</p></div><button type="button" class="secondary" id="passkey-manage-toggle" aria-expanded="false" aria-controls="passkey-manage-content">Manage Passkeys</button></div>
-  <div id="passkey-manage-content" class="hidden"><div class="rowactions" style="margin:10px 0"><button type="button" class="secondary" id="passkey-refresh">Refresh List</button></div><div id="passkey-list" class="list"></div><p class="notice" id="passkey-manage-message" aria-live="polite"></p><p class="muted small">Removing a passkey from this account does not delete it from your device's passkey manager. Email sign-in remains available.</p></div>
-</div></div><p class="notice" id="notice" aria-live="polite"></p></section>
+<section class="panel" id="auth">
+  <div class="sectionhead">
+    <h2>Member account</h2>
+    <div id="account" class="hidden">
+      <span id="identity"></span>
+      <button class="secondary" id="logout">Sign out</button>
+    </div>
+  </div>
+  <div id="login">
+    <p class="muted">Approved members receive a six-digit sign-in code by email.</p>
+    <input type="email" id="email" placeholder="Email address" autocomplete="email">
+    <button id="send">Send code</button>
+    <div id="verify" class="hidden" style="margin-top:10px">
+      <input id="code" inputmode="numeric" maxlength="6"
+        placeholder="Six-digit code" autocomplete="one-time-code">
+      <button id="confirm">Verify</button>
+    </div>
+    <div style="margin-top:15px;border-top:1px solid #e6ded6;padding-top:14px">
+      <button type="button" id="passkey-login" class="secondary">
+        Sign in with Passkey
+      </button>
+      <p class="muted small">
+        Already set up a passkey? Use your device unlock to sign in.
+      </p>
+    </div>
+  </div>
+  <div id="passkey-setup" class="hidden subpanel">
+    <h3>Passkey sign-in</h3>
+    <p class="muted small">
+      Set up a passkey on this device to sign in with your fingerprint,
+      face unlock, or screen-lock PIN. Email codes remain available as a backup.
+    </p>
+    <button type="button" id="passkey-register">Set Up Passkey</button>
+    <p class="notice" id="passkey-message" aria-live="polite"></p>
+
+    <div class="subpanel" id="passkey-management">
+      <div class="sectionhead">
+        <div>
+          <h3>Manage Passkeys</h3>
+          <p class="muted small">
+            View, rename, or remove passkeys registered to your account.
+          </p>
+        </div>
+        <button type="button" class="secondary" id="passkey-manage-toggle"
+          aria-expanded="false" aria-controls="passkey-manage-content">
+          Manage Passkeys
+        </button>
+      </div>
+      <div id="passkey-manage-content" class="hidden">
+        <div class="rowactions" style="margin:10px 0">
+          <button type="button" class="secondary" id="passkey-refresh">
+            Refresh List
+          </button>
+        </div>
+        <div id="passkey-list" class="list"></div>
+        <p class="notice" id="passkey-manage-message" aria-live="polite"></p>
+        <p class="muted small">
+          Removing a passkey from this account does not delete it from your
+          device's passkey manager. Email sign-in remains available.
+        </p>
+      </div>
+    </div>
+  </div>
+  <p class="notice" id="notice" aria-live="polite"></p>
+</section>
 
 <section class="panel hidden" id="contact-panel">
- <div class="sectionhead"><div><h2>Contact / Report an Issue</h2><p class="muted small">Report a problem or request a change. Your name and email are included automatically.</p></div><button type="button" id="contact-toggle" class="secondary" aria-expanded="false">Open Contact Form</button></div>
- <form id="contact-form" class="hidden">
-  <div class="request-fields"><label>Request type<select id="request-type" required><option value="">Select a request type</option><option>Technical Issue</option><option>Attendance Correction</option><option>Calendar / Event Change</option><option>Member Information Update</option><option>Suggestion / General Question</option></select></label><label>Event or date (optional)<input id="request-event" maxlength="200" placeholder="e.g. November 22 rehearsal"></label></div>
-  <label>Describe your issue or requested change<textarea id="request-description" required maxlength="4000" rows="5" placeholder="Please provide enough detail for band leadership to review."></textarea></label>
-  <div class="rowactions" style="margin-top:12px"><button id="request-submit" type="submit">Submit Request</button><button type="button" id="request-refresh" class="secondary">Refresh My Requests</button></div>
- </form>
- <p class="notice" id="request-message" aria-live="polite"></p>
- <div id="my-requests" class="hidden"><h3>My Requests</h3><div id="my-request-list" class="list"></div></div>
+  <div class="sectionhead">
+    <div>
+      <h2>Contact / Report an Issue</h2>
+      <p class="muted small">
+        Report a problem or request a change. Your name and email
+        are included automatically.
+      </p>
+    </div>
+    <button type="button" id="contact-toggle" class="secondary"
+      aria-expanded="false">Open Contact Form</button>
+  </div>
+  <form id="contact-form" class="hidden">
+    <div class="request-fields">
+      <label>Request type
+        <select id="request-type" required>
+          <option value="">Select a request type</option>
+          <option>Technical Issue</option>
+          <option>Attendance Correction</option>
+          <option>Calendar / Event Change</option>
+          <option>Member Information Update</option>
+          <option>Suggestion / General Question</option>
+        </select>
+      </label>
+      <label>Event or date (optional)
+        <input id="request-event" maxlength="200"
+          placeholder="e.g. November 22 rehearsal">
+      </label>
+    </div>
+    <label>Describe your issue or requested change
+      <textarea id="request-description" required maxlength="4000"
+        rows="5" placeholder="Please provide enough detail for band leadership to review."></textarea>
+    </label>
+    <div class="rowactions" style="margin-top:12px">
+      <button id="request-submit" type="submit">Submit Request</button>
+      <button type="button" id="request-refresh" class="secondary">
+        Refresh My Requests
+      </button>
+    </div>
+  </form>
+  <p class="notice" id="request-message" aria-live="polite"></p>
+  <div id="my-requests" class="hidden">
+    <h3>My Requests</h3>
+    <div id="my-request-list" class="list"></div>
+  </div>
 </section>
-<section class="panel hidden" id="section-onboarding"><h2>Select Your Section</h2><p class="muted">Please choose your instrument group before using attendance. Your selection will be saved. An administrator can correct it later.</p><form id="section-onboarding-form" class="form"><label>Instrument group<select id="onboarding-section" required><option value="" selected disabled>Select Your Section</option></select></label><button type="submit">Save Section</button></form><p class="notice" id="section-onboarding-message" aria-live="polite"></p></section>
-<section class="panel"><div class="toolbar"><div><h2>Band calendar</h2><span class="muted small">Tentative 2026–2027 schedule · Subject to change</span></div><div class="rowactions"><button class="secondary" id="prev" aria-label="Previous month">‹</button><strong id="month"></strong><button class="secondary" id="next" aria-label="Next month">›</button><button class="secondary" id="today">Today</button></div></div><p class="small muted">Red = rehearsal · Gold = performance · Gray = cancelled</p><div class="grid" id="calendar"></div></section>
-<section class="panel"><h2>Upcoming events</h2><div class="list" id="upcoming"></div></section>
-<section class="panel hidden" id="detail"><div class="sectionhead"><h2 id="detail-title"></h2><button class="secondary" id="close-detail">Close</button></div><p id="detail-info" class="muted"></p><p id="detail-notes"></p><div id="response"></div><div id="roster"></div></section>
-<section class="panel hidden" id="admin"><h2>Section leader dashboard</h2><p class="muted small">Manage your section and the shared band schedule. Only authorized leaders can access these tools.</p><div class="tabs"><button class="secondary active" data-tab="summary">Attendance overview</button><button class="secondary" data-tab="members">Members</button><button class="secondary" data-tab="events">Manage events</button><button class="secondary" id="access-tab-button" data-tab="access">Access Management</button><button class="secondary" data-tab="requests">Requests</button></div>
-<div id="tab-summary"><h3>Attendance overview</h3><label>Choose an event<select id="summary-event"></select></label><div id="summary-content"></div></div>
-<div id="tab-members" class="hidden"><div class="sectionhead"><h3>Section members</h3><label class="small">Show <select id="member-filter"><option value="active">Active members</option><option value="all">All members</option></select></label></div><div class="tablewrap"><table><thead><tr><th>Name</th><th>Email</th><th>Access Level</th><th>Instrument Group</th><th>Status</th><th>Action</th></tr></thead><tbody id="member-rows"></tbody></table></div><div class="subpanel"><div class="sectionhead"><h3>Mass member entry</h3><button type="button" class="secondary" id="bulk-toggle" aria-expanded="false">Mass Add Members</button></div><div id="bulk-panel" class="hidden"><p class="muted small">Paste one person per line: Full Name, email@example.com. New members will have the Member role. Existing email addresses will be skipped by the server.</p><label>Names and email addresses<textarea id="bulk-input" rows="7" placeholder="Jess Smith, jess@example.com&#10;Robert Jones, robert@example.com"></textarea></label><div class="rowactions" style="margin-top:10px"><button type="button" class="secondary" id="bulk-preview">Review entries</button><button type="button" id="bulk-save" disabled>Add reviewed members</button></div><p id="bulk-msg" class="notice" aria-live="polite"></p><div id="bulk-results" class="tablewrap"></div></div></div><div class="subpanel"><h3 id="member-form-title">Add a member</h3><form id="member-form" class="form"><label>Name<input required name="display_name" maxlength="100" placeholder="Full name"></label><label>Email<input required type="email" name="email" placeholder="name@example.com"></label><label id="member-section-wrap" class="hidden">Instrument Group<select name="section_id" id="member-section"></select></label><label id="member-role-wrap" class="hidden">Access Level<select name="role"><option value="member">Member</option><option value="leader">Section Leader</option><option value="admin">Administrator</option></select></label><button type="submit" id="member-save">Add member</button><button type="button" class="secondary hidden" id="member-cancel">Cancel edit</button></form><p id="member-msg" class="notice" aria-live="polite"></p></div></div>
-<div id="tab-events" class="hidden"><h3>Manage rehearsals and performances</h3><label>Choose an event to edit<select id="edit-event"><option value="">Add a new event</option></select></label><div class="subpanel"><h3 id="event-form-title">Add an event</h3><form id="event-form" class="form"><label>Title<input required name="title" maxlength="150" placeholder="Band rehearsal"></label><label>Type<select name="event_type"><option value="rehearsal">Rehearsal</option><option value="performance">Performance</option></select></label><label>Date<input required type="date" name="event_date"></label><label>Start time (optional)<input type="time" name="start_time"></label><label>Location (optional)<input name="location"></label><label>Status<select name="status"><option value="scheduled">Scheduled</option><option value="cancelled">Cancelled</option></select></label><label style="flex-basis:100%">Notes (optional)<textarea name="notes" maxlength="2000"></textarea></label><button type="submit" id="event-save">Add event</button><button type="button" class="secondary" id="event-reset">Clear form</button></form><p class="muted small">Cancelled events remain visible for reference; attendance cannot be changed for cancelled events.</p><p id="event-msg" class="notice" aria-live="polite"></p></div></div><div id="tab-access" class="hidden"><h3>Access Management</h3><p class="muted small">Administrators may appoint section leaders. Only the Owner can appoint or remove administrators. Section leaders can manage attendance for their own section only.</p><div class="tablewrap"><table><thead><tr><th>Member</th><th>Section</th><th>Access level</th><th>Action</th></tr></thead><tbody id="access-rows"></tbody></table></div><p class="notice" id="access-msg" aria-live="polite"></p></div><div id="tab-requests" class="hidden"><div class="sectionhead"><h3>Manage Requests</h3><button type="button" class="secondary" id="leader-request-refresh">Refresh Requests</button></div><p class="muted small">Owner and Administrators see all requests. Section Leaders see requests from their section and can manage eligible categories.</p><p class="notice" id="leader-request-message" aria-live="polite"></p><div id="leader-request-list" class="list"></div></div></section>
-</main><script>
-// Layout-only refactor. Original panels and all their event handlers are preserved.
-(function(){
-  const main=document.querySelector('main');
-  const ids={home:['install-app-panel','section-onboarding','upcoming'],calendar:['calendar'],attendance:['detail'],members:[],admin:['admin'],requests:['contact-panel'],account:['auth']};
-  const views={};
-  for(const key of Object.keys(ids)){
-    const section=document.createElement('div');section.className='portal-view'+(key==='home'?' current-view':'');section.id='view-'+key;
-    section.setAttribute('role','region');section.setAttribute('aria-label',key==='admin'?'Management':key.charAt(0).toUpperCase()+key.slice(1));
-    main.append(section);views[key]=section;
-  }
-  for(const [key,elementIds] of Object.entries(ids))for(const id of elementIds){
-    const node=document.getElementById(id);if(node)views[key].append(node);
-  }
-  // The calendar and upcoming panels had no IDs; identify them by their content.
-  const calendar=document.getElementById('calendar');if(calendar)views.calendar.append(calendar.closest('section.panel'));
-  const upcoming=document.getElementById('upcoming');if(upcoming)views.home.append(upcoming.closest('section.panel'));
-  const attendancePanel=document.createElement('section');attendancePanel.className='panel';
-  attendancePanel.innerHTML='<h2>My Attendance</h2><p class="muted small">Select an event to view or update your response.</p><div class="list" id="attendance-event-list"></div>';
-  views.attendance.prepend(attendancePanel);
-  const homeWelcome=document.createElement('section');homeWelcome.className='panel';
-  homeWelcome.innerHTML='<h2>Welcome to Bergholz Band</h2><p class="muted">Find upcoming rehearsals and performances below. Use the large navigation buttons above to access the calendar, attendance, and your account.</p>';
-  views.home.prepend(homeWelcome);
-  let active='home';
-  window.showPortalView=function(view){
-    if(view==='members'){
-      if(!window.userIsAdminForNav?.())return;
-      view='admin';
-      const tab=document.querySelector('[data-tab="members"]');if(tab)tab.click();
-    }
-    if(view==='admin'&&!window.userIsLeaderForNav?.())return;
-    if(view==='requests'&&!window.userSignedInForNav?.())return;
-    if(!views[view])return;
-    active=view;
-    for(const [key,section] of Object.entries(views))section.classList.toggle('current-view',key===view);
-    document.querySelectorAll('[data-view]').forEach(button=>{
-      if(button.dataset.view===view||(view==='admin'&&button.dataset.view==='members'&&document.querySelector('[data-tab="members"]')?.classList.contains('active'))){
-        button.setAttribute('aria-current','page');
-      }else button.removeAttribute('aria-current');
-    });
-    window.scrollTo({top:0,behavior:'instant'});
-  };
-  window.refreshPortalNavigation=function(){
-    const signed=!!window.userSignedInForNav?.(),leader=!!window.userIsLeaderForNav?.(),admin=!!window.userIsAdminForNav?.();
-    for(const [key,visible] of Object.entries({members:admin,admin:leader,requests:signed})){
-      const button=document.querySelector('[data-view="'+key+'"]');if(button)button.classList.toggle('hidden',!visible);
-    }
-    if((active==='admin'&&!leader)||(active==='requests'&&!signed))window.showPortalView('home');
-  };
-  window.renderPortalAttendance=function(events,user,attendance){
-    const list=document.getElementById('attendance-event-list');if(!list)return;
-    if(!user){list.innerHTML='<p class="muted">Sign in under My Account to respond to events.</p>';return;}
-    const today=new Date();today.setHours(0,0,0,0);
-    const upcoming=events.filter(e=>new Date(e.event_date+'T12:00:00')>=today).slice(0,25);
-    list.replaceChildren();
-    if(!upcoming.length){list.textContent='No upcoming events.';return;}
-    for(const event of upcoming){
-      const row=document.createElement('div');row.className='item';
-      const info=document.createElement('div');
-      const heading=document.createElement('strong');heading.textContent=event.title;
-      const meta=document.createElement('div');meta.className='muted small';
-      const answer=attendance.find(a=>Number(a.event_id)===Number(event.id)&&Number(a.member_id)===Number(user.id));
-      meta.textContent=event.event_date+' · '+(event.status==='cancelled'?'Cancelled':answer?({yes:'Attending',no:'Not attending',maybe:'Unsure'}[answer.response]||'Not answered'):'Not answered');
-      info.append(heading,meta);
-      const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='View / Respond';
-      button.addEventListener('click',()=>window.openPortalEvent?.(event.id));
-      row.append(info,button);list.append(row);
-    }
-  };
-  document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>window.showPortalView(b.dataset.view)));
-})();
-</script><script>
-let events=[],attendance=[],members=[],sections=[],user=null,selected=null,editingMember=null,editingEvent=null,view=new Date(2026,10,1);const $=id=>document.getElementById(id);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const fmt=d=>new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});const admin=()=>user&&['admin','owner'].includes(user.role);const leader=()=>user&&['leader','admin','owner'].includes(user.role);const responseLabel={yes:'Attending',no:'Not attending',maybe:'Unsure'};window.userSignedInForNav=()=>!!user;window.userIsLeaderForNav=()=>!!leader();window.userIsAdminForNav=()=>!!admin();window.openPortalEvent=id=>openEvent(Number(id));
-async function api(path,opts={}){const r=await fetch('/api'+path,{...opts,headers:{'Content-Type':'application/json',...(opts.headers||{})}});let j;try{j=await r.json()}catch{throw Error('Server did not return a valid response')};if(!r.ok)throw Error(j.error||'Request failed');return j}
-const send=(path,data,method='POST')=>api(path,{method,body:JSON.stringify(data)});
-function render(){renderPortalAttendance(events,user,attendance);const y=view.getFullYear(),m=view.getMonth();$('month').textContent=view.toLocaleDateString('en-US',{month:'long',year:'numeric'});let html=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(x=>`<div class="days">${x}</div>`).join('');const first=new Date(y,m,1).getDay(),total=new Date(y,m+1,0).getDate();for(let i=0;i<first;i++)html+='<div class="day empty"></div>';for(let day=1;day<=total;day++){const key=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`,list=events.filter(e=>e.event_date===key);html+=`<div class="day"><b>${day}</b>${list.map(e=>`<button class="event ${esc(e.event_type)} ${e.status==='cancelled'?'cancelled':''}" data-open="${e.id}" title="${esc(e.title)}">${esc(e.title)}</button>`).join('')}</div>`}$('calendar').innerHTML=html;const now=new Date();now.setHours(0,0,0,0);const future=events.filter(e=>new Date(e.event_date+'T12:00:00')>=now).slice(0,16);$('upcoming').innerHTML=future.length?future.map(e=>`<div class="item"><div><strong>${esc(e.title)}</strong> ${e.status==='cancelled'?'<span class="danger">(Cancelled)</span>':''}<div class="muted">${fmt(e.event_date)}${e.start_time?' · '+esc(e.start_time):''}${e.location?' · '+esc(e.location):''}</div></div><button class="secondary" data-open="${e.id}">Details</button></div>`).join(''):'<p class="muted">No upcoming events.</p>';document.querySelectorAll('[data-open]').forEach(el=>el.onclick=()=>openEvent(+el.dataset.open))}
-function openEvent(id){showPortalView('attendance');selected=events.find(e=>e.id===id);if(!selected)return;$('detail').classList.remove('hidden');$('detail-title').textContent=selected.title;$('detail-info').textContent=fmt(selected.event_date)+(selected.start_time?' · '+selected.start_time:'')+(selected.location?' · '+selected.location:'')+(selected.status==='cancelled'?' · CANCELLED':'');$('detail-notes').textContent=selected.notes||'';if(!user){$('response').innerHTML='<p>Sign in to respond to this event.</p>';$('roster').innerHTML=''}else if(user.section_confirmed===false){$('response').innerHTML='<p>Select your section above before responding.</p>';$('roster').innerHTML=''}else{const mine=attendance.find(a=>a.event_id===id&&a.member_id===user.id);$('response').innerHTML=`<p><strong>Your response:</strong> ${mine?responseLabel[mine.response]:'Not answered'}</p>${selected.status==='scheduled'?`<div class="rowactions">${['yes','no','maybe'].map(v=>`<button data-response="${v}" class="${mine?.response===v?'active':'secondary'}">${responseLabel[v]}</button>`).join('')}</div>`:'<p class="danger">This event is cancelled.</p>'}`;document.querySelectorAll('[data-response]').forEach(el=>el.onclick=async()=>{try{el.disabled=true;await send('/attendance',{event_id:id,response:el.dataset.response});await loadAttendance();openEvent(id);renderSummary()}catch(e){$('notice').textContent=e.message}});if(leader()){const active=members.filter(m=>m.active&&m.section_confirmed!==0&&(admin()||m.section_id===user.section_id));const rows=active.map(m=>({m,response:attendance.find(a=>a.event_id===id&&a.member_id===m.id)?.response}));$('roster').innerHTML='<h3>Section responses</h3>'+countsHTML(rows)+`<div class="roster">${rows.map(({m,response})=>`<div class="rosterline">${esc(m.display_name)} — ${response?responseLabel[response]:'No response'}</div>`).join('')}</div>`}else $('roster').innerHTML=''}$('detail').scrollIntoView({behavior:'smooth',block:'start'})}
-function countsHTML(rows){const c=v=>rows.filter(r=>r.response===v).length;return `<div class="counts"><span class="pill">Attending <strong>${c('yes')}</strong></span><span class="pill">Not attending <strong>${c('no')}</strong></span><span class="pill">Unsure <strong>${c('maybe')}</strong></span><span class="pill">No response <strong>${c(undefined)}</strong></span></div>`}
-async function loadAttendance(){attendance=user?(await api('/attendance')).attendance:[]}
-function renderSummary(){if(!leader())return;const id=Number($('summary-event').value);const event=events.find(e=>e.id===id);if(!event){$('summary-content').innerHTML='<p class="muted">Choose an event.</p>';return}const active=members.filter(m=>m.active&&m.section_confirmed!==0&&(admin()||m.section_id===user.section_id));const rows=active.map(m=>({m,response:attendance.find(a=>a.event_id===id&&a.member_id===m.id)?.response}));$('summary-content').innerHTML=countsHTML(rows)+`<div class="tablewrap"><table><thead><tr><th>Member</th><th>Response</th></tr></thead><tbody>${rows.map(({m,response})=>`<tr><td>${esc(m.display_name)}</td><td>${admin()||user.role==='leader'?`<select data-attend-member="${m.id}"><option value="" ${!response?'selected':''}>No response</option>${['yes','no','maybe'].map(v=>`<option value="${v}" ${response===v?'selected':''}>${responseLabel[v]}</option>`).join('')}</select>`:(response?responseLabel[response]:'No response')}</td></tr>`).join('')}</tbody></table></div>`;document.querySelectorAll('[data-attend-member]').forEach(el=>el.onchange=async()=>{if(!el.value)return;try{await send('/attendance',{event_id:id,member_id:Number(el.dataset.attendMember),response:el.value});await loadAttendance();renderSummary()}catch(e){$('notice').textContent=e.message}})}
-function renderAccess(){
- if(!admin())return;
- $('access-rows').innerHTML=members.map(m=>{
-  const isOwner=m.email.toLowerCase()==='brandenstoll@gmail.com';
-  const isAdmin=m.role==='admin';
-  const editable=!isOwner&&(user.role==='owner'||!isAdmin);
-  const roles=user.role==='owner'?['member','leader','admin']:['member','leader'];
-  const roleSelect=isOwner?'<strong>Owner</strong>':`<select data-access-role="${m.id}" ${editable?'':'disabled'}>${roles.map(r=>`<option value="${r}" ${m.role===r?'selected':''}>${r==='leader'?'Section Leader':r==='admin'?'Administrator':'Member'}</option>`).join('')}</select>`;
-  const sectionSelect=`<select data-access-section="${m.id}" ${editable?'':'disabled'}>${m.section_confirmed===0?'<option value="" selected>Awaiting Selection</option>':''}${sections.map(s=>`<option value="${s.id}" ${m.section_confirmed!==0&&String(s.id)===String(m.section_id)?'selected':''}>${esc(s.name)}</option>`).join('')}</select>`;
-  return `<tr><td>${esc(m.display_name)}<div class="small muted">${esc(m.email)}</div></td><td>${sectionSelect}</td><td>${roleSelect}</td><td>${editable?`<button class="secondary" data-access-save="${m.id}">Save</button>`:'Protected'}</td></tr>`;
- }).join('');
- document.querySelectorAll('[data-access-save]').forEach(btn=>btn.onclick=async()=>{
-  const id=Number(btn.dataset.accessSave),m=members.find(x=>x.id===id);
-  const role=$(`access-rows`).querySelector(`[data-access-role="${id}"]`).value;
-  const section_id=Number($('access-rows').querySelector(`[data-access-section="${id}"]`).value);
-  if(!section_id){$('access-msg').textContent='Choose a valid section.';return;}
-  if(!confirm(`Save ${m.display_name} as ${role==='leader'?'Section Leader':role==='admin'?'Administrator':'Member'}?`))return;
-  btn.disabled=true;
-  try{await send('/members/'+id,{role,section_id},'PATCH');await refreshLeader();$('access-msg').textContent='Access updated.'}
-  catch(e){$('access-msg').textContent=e.message;btn.disabled=false}
- });
-}
-function renderMembers(){if(!leader())return;const rows=members.filter(m=>$('member-filter').value==='all'||m.active);$('member-rows').innerHTML=rows.map(m=>`<tr><td>${esc(m.display_name)}</td><td>${esc(m.email)}</td><td>${esc(m.email==='brandenstoll@gmail.com'?'Owner':m.role==='leader'?'Section Leader':m.role==='admin'?'Administrator':'Member')}</td><td>${esc(m.section_confirmed===0?'Awaiting selection':(sections.find(s=>s.id===m.section_id)?.name||'Unassigned'))}</td><td>${m.active?'Active':'Inactive'}</td><td><div class="rowactions"><button class="secondary" data-member="${m.id}">Edit</button>${m.id!==user.id?`<button class="secondary" data-toggle="${m.id}">${m.active?'Deactivate':'Reactivate'}</button>`:''}</div></td></tr>`).join('');document.querySelectorAll('[data-member]').forEach(b=>b.onclick=()=>editMember(+b.dataset.member));document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=async()=>{const m=members.find(x=>x.id===+b.dataset.toggle);if(!confirm(`${m.active?'Deactivate':'Reactivate'} ${m.display_name}?`))return;try{await send('/members/'+m.id,{active:m.active?0:1},'PATCH');await refreshLeader();$('member-msg').textContent='Member updated.'}catch(e){$('member-msg').textContent=e.message}})}
-function editMember(id){const m=members.find(x=>x.id===id);editingMember=id;const f=$('member-form');f.elements.display_name.value=m.display_name;f.elements.email.value=m.email;if(admin()){f.elements.section_id.value=m.section_confirmed===0?'':m.section_id;f.elements.role.value=m.role}$('member-form-title').textContent='Edit member';$('member-save').textContent='Save changes';$('member-cancel').classList.remove('hidden');$('member-form').scrollIntoView({behavior:'smooth'})}
-function resetMember(){editingMember=null;$('member-form').reset();$('member-form-title').textContent='Add a member';$('member-save').textContent='Add member';$('member-cancel').classList.add('hidden')}
-function eventOptions(){return events.map(e=>`<option value="${e.id}">${esc(e.event_date)} — ${esc(e.title)}${e.status==='cancelled'?' (Cancelled)':''}</option>`).join('')}
-function renderEventOptions(){const prev=$('summary-event').value;$('summary-event').innerHTML=eventOptions();if(events.some(e=>String(e.id)===prev))$('summary-event').value=prev;const chosen=$('edit-event').value;$('edit-event').innerHTML='<option value="">Add a new event</option>'+eventOptions();if(events.some(e=>String(e.id)===chosen))$('edit-event').value=chosen;renderSummary()}
-function resetEvent(){$('event-form').reset();editingEvent=null;$('edit-event').value='';$('event-form-title').textContent='Add an event';$('event-save').textContent='Add event'}
-function editEvent(id){const e=events.find(x=>x.id===id);if(!e){resetEvent();return}editingEvent=id;const f=$('event-form');for(const k of ['title','event_type','event_date','start_time','location','notes','status'])f.elements[k].value=e[k]||'';$('event-form-title').textContent='Edit event';$('event-save').textContent='Save changes'}
-async function refreshLeader(){if(!leader())return;[members,sections]=await Promise.all([api('/members').then(r=>r.members),api('/sections').then(r=>r.sections)]);$('member-section-wrap').classList.toggle('hidden',!admin());$('member-role-wrap').classList.toggle('hidden',!admin());$('member-section').innerHTML='<option value="" disabled selected>Select Your Section</option>'+sections.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');$('member-section').value='';renderMembers();renderAccess();renderEventOptions()}
-async function loadOnboarding(){
- const pending=!!user&&user.section_confirmed===false;
- $('section-onboarding').classList.toggle('hidden',!pending);
- if(pending){const result=await api('/sections');$('onboarding-section').innerHTML='<option value="" disabled selected>Select Your Section</option>'+result.sections.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('');}
-}
-$('section-onboarding-form').onsubmit=async ev=>{ev.preventDefault();const section_id=Number($('onboarding-section').value);if(!section_id){$('section-onboarding-message').textContent='Please select your section.';return}try{await send('/me/section',{section_id});$('section-onboarding-message').textContent='Section saved.';await init()}catch(e){$('section-onboarding-message').textContent=e.message}};
-async function init(){events=(await api('/events')).events;user=(await api('/me')).user;await loadAttendance();await loadOnboarding();$('login').classList.toggle('hidden',!!user);$('account').classList.toggle('hidden',!user);$('admin').classList.toggle('hidden',!leader()||user?.section_confirmed===false);document.querySelector('[data-tab="members"]').classList.toggle('hidden',!admin());document.querySelector('[data-tab="events"]').classList.toggle('hidden',!admin());$('access-tab-button').classList.toggle('hidden',!admin());$('identity').textContent=user?`Signed in: ${user.name} (${user.role})`:'';$('passkey-setup').classList.toggle('hidden',!user);if(leader())await refreshLeader();else{members=[];sections=[]}render();await loadRequestsUI();if(selected)openEvent(selected.id);refreshPortalNavigation()}
-$('prev').onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()-1,1);render()};$('next').onclick=()=>{view=new Date(view.getFullYear(),view.getMonth()+1,1);render()};$('today').onclick=()=>{const n=new Date();view=new Date(n.getFullYear(),n.getMonth(),1);render()};$('close-detail').onclick=()=>{$('detail').classList.add('hidden');selected=null};$('send').onclick=async()=>{try{$('notice').textContent='Sending…';const r=await send('/auth/request',{email:$('email').value});$('notice').textContent=r.message;$('verify').classList.remove('hidden')}catch(e){$('notice').textContent=e.message}};$('confirm').onclick=async()=>{try{await send('/auth/verify',{email:$('email').value,code:$('code').value});$('notice').textContent='Signed in.';await init()}catch(e){$('notice').textContent=e.message}};$('logout').onclick=async()=>{try{await api('/auth/logout',{method:'POST'});selected=null;$('detail').classList.add('hidden');await init()}catch(e){$('notice').textContent=e.message}};
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));for(const t of ['summary','members','events','access','requests'])$('tab-'+t).classList.toggle('hidden',b.dataset.tab!==t)});$('summary-event').onchange=renderSummary;$('member-filter').onchange=renderMembers;$('member-cancel').onclick=resetMember;
-$('member-form').onsubmit=async ev=>{ev.preventDefault();const f=ev.target;const data=Object.fromEntries(new FormData(f));if(admin()&&!data.section_id){$('member-msg').textContent='Please select a section.';return}if(!admin()){delete data.section_id;delete data.role}try{await send(editingMember?'/members/'+editingMember:'/members',data,editingMember?'PATCH':'POST');resetMember();await refreshLeader();$('member-msg').textContent='Member saved.'}catch(e){$('member-msg').textContent=e.message}};
-let bulkEntries=[];
-$('bulk-toggle').onclick=()=>{const open=$('bulk-panel').classList.toggle('hidden')===false;$('bulk-toggle').setAttribute('aria-expanded',String(open))};
-$('bulk-input').oninput=()=>{bulkEntries=[];$('bulk-save').disabled=true;$('bulk-results').innerHTML='';$('bulk-msg').textContent='Review entries again after making changes.'};
-$('bulk-preview').onclick=()=>{const lines=$('bulk-input').value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean),seen=new Set(),valid=[],errors=[];for(let i=0;i<lines.length;i++){const line=lines[i],at=line.lastIndexOf(',');if(at<1){errors.push(`Line ${i+1}: use Name, email@example.com`);continue}const name=line.slice(0,at).trim(),email=line.slice(at+1).trim().toLowerCase();if(!name||name.length>100||!/^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/.test(email)){errors.push(`Line ${i+1}: invalid name or email`);continue}if(seen.has(email)){errors.push(`Line ${i+1}: duplicate email in pasted list`);continue}seen.add(email);valid.push({display_name:name,email})}bulkEntries=valid;$('bulk-save').disabled=!valid.length||errors.length>0;$('bulk-msg').textContent=errors.length?errors.join(' | '):`${valid.length} members ready to add.`;$('bulk-results').innerHTML=valid.length?'<table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>'+valid.map(m=>`<tr><td>${esc(m.display_name)}</td><td>${esc(m.email)}</td></tr>`).join('')+'</tbody></table>':''};
-$('bulk-save').onclick=async()=>{if(!bulkEntries.length||!confirm(`Add ${bulkEntries.length} members?`))return;const button=$('bulk-save');button.disabled=true;$('bulk-msg').textContent='Adding members…';try{const result=await send('/members/bulk',{members:bulkEntries});$('bulk-msg').textContent=`Import complete. Added: ${result.added??0}. Skipped: ${result.skipped??0}.`;$('bulk-results').textContent=Array.isArray(result.errors)&&result.errors.length?result.errors.map(x=>typeof x==='string'?x:JSON.stringify(x)).join(' | '):'';bulkEntries=[];$('bulk-input').value='';await refreshLeader()}catch(e){$('bulk-msg').textContent=e.message+' The bulk API endpoint must be installed before this button can save members.';button.disabled=false}};
-$('edit-event').onchange=()=>{const id=Number($('edit-event').value);id?editEvent(id):resetEvent()};$('event-reset').onclick=resetEvent;$('event-form').onsubmit=async ev=>{ev.preventDefault();const data=Object.fromEntries(new FormData(ev.target));if(!editingEvent)delete data.status;try{await send(editingEvent?'/events/'+editingEvent:'/events',data,editingEvent?'PATCH':'POST');$('event-msg').textContent='Event saved.';resetEvent();events=(await api('/events')).events;render();renderEventOptions();if(selected)openEvent(selected.id)}catch(e){$('event-msg').textContent=e.message}};
 
-// Request management: uses the existing signed-in member and /api/requests.
-let supportRequests=[];
-const requestCategoriesForLeaders=['Attendance Correction','Member Information Update','Suggestion / General Question'];
-function mayManageRequest(r){return admin()||(user?.role==='leader'&&user.section_id!=null&&Number(r.section_id)===Number(user.section_id)&&requestCategoriesForLeaders.includes(r.request_type));}
-function requestCard(r,manage){
- const status=esc(r.status||'New');
- const who=r.assigned_to?'Member #'+esc(r.assigned_to):'Unassigned';
- const controls=manage&&mayManageRequest(r)?`<div class="rowactions"><button type="button" class="secondary" data-claim-request="${r.id}" ${r.assigned_to&&Number(r.assigned_to)!==Number(user.id)&&!admin()?'disabled':''}>${r.assigned_to?'Assigned':'Take Ownership'}</button><select aria-label="Status for ${esc(r.tracking_number||r.id)}" data-status-request="${r.id}">${['New','In Progress','Resolved'].map(v=>`<option value="${v}" ${r.status===v?'selected':''}>${v}</option>`).join('')}</select><button type="button" class="secondary" data-save-request="${r.id}">Save Status</button></div>`:'';
- return `<div class="request-card"><div class="sectionhead"><strong>${esc(r.tracking_number||'#'+r.id)} · ${esc(r.request_type)}</strong><span class="request-status">${status}</span></div><div class="muted">Submitted by ${esc(r.member_name)} · ${esc(r.created_at)} · ${who}</div>${r.event_reference?`<div class="muted">Event: ${esc(r.event_reference)}</div>`:''}<p>${esc(r.description)}</p>${controls}</div>`;
-}
-function renderRequestsUI(){
- if(!user)return;
- const mine=supportRequests.filter(r=>Number(r.member_id)===Number(user.id));
- $('my-request-list').innerHTML=mine.length?mine.map(r=>requestCard(r,false)).join(''):'<p class="muted">No requests submitted yet.</p>';
- if(leader()){
-  $('leader-request-list').innerHTML=supportRequests.length?supportRequests.map(r=>requestCard(r,true)).join(''):'<p class="muted">No requests found.</p>';
-  $('leader-request-list').querySelectorAll('[data-claim-request]').forEach(b=>b.onclick=()=>changeRequest(b.dataset.claimRequest,{id:Number(b.dataset.claimRequest),take_ownership:true}));
-  $('leader-request-list').querySelectorAll('[data-save-request]').forEach(b=>b.onclick=()=>{const id=Number(b.dataset.saveRequest);const select=$('leader-request-list').querySelector(`[data-status-request="${id}"]`);changeRequest(id,{id,status:select.value});});
- }
-}
-async function loadRequestsUI(){
- $('contact-panel').classList.toggle('hidden',!user);
- $('my-requests').classList.toggle('hidden',!user);
- if(!user){supportRequests=[];return;}
- try{supportRequests=(await api('/requests')).requests||[];renderRequestsUI();$('request-message').textContent='';}
- catch(e){$('request-message').textContent='Unable to load requests: '+e.message;if(leader())$('leader-request-message').textContent=e.message;}
-}
-async function changeRequest(id,payload){
- const message=$('leader-request-message');message.textContent='Saving…';
- try{await send('/requests',payload,'PATCH');await loadRequestsUI();message.textContent='Request updated.';}
- catch(e){message.textContent=e.message;}
-}
-$('contact-toggle').onclick=()=>{const opened=$('contact-form').classList.toggle('hidden')===false;$('contact-toggle').textContent=opened?'Close Contact Form':'Open Contact Form';$('contact-toggle').setAttribute('aria-expanded',String(opened));};
-$('request-refresh').onclick=loadRequestsUI;
-$('leader-request-refresh').onclick=loadRequestsUI;
-$('contact-form').onsubmit=async ev=>{
- ev.preventDefault();const btn=$('request-submit');btn.disabled=true;$('request-message').textContent='Submitting request…';
- try{const result=await send('/requests',{request_type:$('request-type').value,event_reference:$('request-event').value,description:$('request-description').value});$('contact-form').reset();await loadRequestsUI();$('request-message').textContent='Request submitted. Tracking number: '+(result.request?.tracking_number||'Pending');}
- catch(e){$('request-message').textContent=e.message;}
- finally{btn.disabled=false;}
+<section class="panel hidden" id="section-onboarding">
+  <h2>Select Your Section</h2>
+  <p class="muted">
+    Please choose your instrument group before using attendance.
+    Your selection will be saved. An administrator can correct it later.
+  </p>
+  <form id="section-onboarding-form" class="form">
+    <label>Instrument group
+      <select id="onboarding-section" required>
+        <option value="" selected disabled>Select Your Section</option>
+      </select>
+    </label>
+    <button type="submit">Save Section</button>
+  </form>
+  <p class="notice" id="section-onboarding-message" aria-live="polite"></p>
+</section>
+
+<section class="panel">
+  <div class="toolbar">
+    <div>
+      <h2>Band calendar</h2>
+      <span class="muted small">
+        Tentative 2026–2027 schedule · Subject to change
+      </span>
+    </div>
+    <div class="rowactions">
+      <button class="secondary" id="prev" aria-label="Previous month">‹</button>
+      <strong id="month"></strong>
+      <button class="secondary" id="next" aria-label="Next month">›</button>
+      <button class="secondary" id="today">Today</button>
+    </div>
+  </div>
+  <p class="small muted">
+    Red = rehearsal · Gold = performance · Gray = cancelled
+  </p>
+  <div class="grid" id="calendar"></div>
+</section>
+
+<section class="panel">
+  <h2>Upcoming events</h2>
+  <div class="list" id="upcoming"></div>
+</section>
+
+<section class="panel hidden" id="detail">
+  <div class="sectionhead">
+    <h2 id="detail-title"></h2>
+    <button class="secondary" id="close-detail">Close</button>
+  </div>
+  <p id="detail-info" class="muted"></p>
+  <p id="detail-notes"></p>
+  <div id="response"></div>
+  <div id="roster"></div>
+</section>
+
+<section class="panel hidden" id="admin">
+  <h2>Section leader dashboard</h2>
+  <p class="muted small">
+    Manage your section and the shared band schedule.
+    Only authorized leaders can access these tools.
+  </p>
+  <div class="tabs">
+    <button class="secondary active" data-tab="summary">Attendance overview</button>
+    <button class="secondary" data-tab="members">Members</button>
+    <button class="secondary" data-tab="events">Manage events</button>
+    <button class="secondary" id="access-tab-button" data-tab="access">
+      Access Management
+    </button>
+    <button class="secondary" data-tab="requests">Requests</button>
+  </div>
+
+  <div id="tab-summary">
+    <h3>Attendance overview</h3>
+    <label>Choose an event
+      <select id="summary-event"></select>
+    </label>
+    <div id="summary-content"></div>
+  </div>
+
+  <div id="tab-members" class="hidden">
+    <div class="sectionhead">
+      <h3>Section members</h3>
+      <label class="small">Show
+        <select id="member-filter">
+          <option value="active">Active members</option>
+          <option value="all">All members</option>
+        </select>
+      </label>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Email</th><th>Access Level</th>
+            <th>Instrument Group</th><th>Status</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="member-rows"></tbody>
+      </table>
+    </div>
+    <div class="subpanel">
+      <div class="sectionhead">
+        <h3>Mass member entry</h3>
+        <button type="button" class="secondary" id="bulk-toggle"
+          aria-expanded="false">Mass Add Members</button>
+      </div>
+      <div id="bulk-panel" class="hidden">
+        <p class="muted small">
+          Paste one person per line: Full Name, email@example.com.
+          New members will have the Member role.
+          Existing email addresses will be skipped by the server.
+        </p>
+        <label>Names and email addresses
+          <textarea id="bulk-input" rows="7"
+            placeholder="Jess Smith, jess@example.com&#10;Robert Jones, robert@example.com"></textarea>
+        </label>
+        <div class="rowactions" style="margin-top:10px">
+          <button type="button" class="secondary" id="bulk-preview">
+            Review entries
+          </button>
+          <button type="button" id="bulk-save" disabled>
+            Add reviewed members
+          </button>
+        </div>
+        <p id="bulk-msg" class="notice" aria-live="polite"></p>
+        <div id="bulk-results" class="tablewrap"></div>
+      </div>
+    </div>
+    <div class="subpanel">
+      <h3 id="member-form-title">Add a member</h3>
+      <form id="member-form" class="form">
+        <label>Name
+          <input required name="display_name" maxlength="100"
+            placeholder="Full name">
+        </label>
+        <label>Email
+          <input required type="email" name="email"
+            placeholder="name@example.com">
+        </label>
+        <label id="member-section-wrap" class="hidden">
+          Instrument Group
+          <select name="section_id" id="member-section"></select>
+        </label>
+        <label id="member-role-wrap" class="hidden">
+          Access Level
+          <select name="role">
+            <option value="member">Member</option>
+            <option value="leader">Section Leader</option>
+            <option value="admin">Administrator</option>
+          </select>
+        </label>
+        <button type="submit" id="member-save">Add member</button>
+        <button type="button" class="secondary hidden" id="member-cancel">
+          Cancel edit
+        </button>
+      </form>
+      <p id="member-msg" class="notice" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div id="tab-events" class="hidden">
+    <h3>Manage rehearsals and performances</h3>
+    <label>Choose an event to edit
+      <select id="edit-event">
+        <option value="">Add a new event</option>
+      </select>
+    </label>
+    <div class="subpanel">
+      <h3 id="event-form-title">Add an event</h3>
+      <form id="event-form" class="form">
+        <label>Title
+          <input required name="title" maxlength="150"
+            placeholder="Band rehearsal">
+        </label>
+        <label>Type
+          <select name="event_type">
+            <option value="rehearsal">Rehearsal</option>
+            <option value="performance">Performance</option>
+          </select>
+        </label>
+        <label>Date
+          <input required type="date" name="event_date">
+        </label>
+        <label>Start time (optional)
+          <input type="time" name="start_time">
+        </label>
+        <label>Location (optional)
+          <input name="location">
+        </label>
+        <label>Status
+          <select name="status">
+            <option value="scheduled">Scheduled</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </label>
+        <label style="flex-basis:100%">
+          Notes (optional)
+          <textarea name="notes" maxlength="2000"></textarea>
+        </label>
+        <button type="submit" id="event-save">Add event</button>
+        <button type="button" class="secondary" id="event-reset">
+          Clear form
+        </button>
+      </form>
+      <p class="muted small">
+        Cancelled events remain visible for reference;
+        attendance cannot be changed for cancelled events.
+      </p>
+      <p id="event-msg" class="notice" aria-live="polite"></p>
+    </div>
+  </div>
+
+  <div id="tab-access" class="hidden">
+    <h3>Access Management</h3>
+    <p class="muted small">
+      Administrators may appoint section leaders.
+      Only the Owner can appoint or remove administrators.
+      Section leaders can manage attendance for their own section only.
+    </p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Member</th><th>Section</th>
+            <th>Access level</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="access-rows"></tbody>
+      </table>
+    </div>
+    <p class="notice" id="access-msg" aria-live="polite"></p>
+  </div>
+
+  <div id="tab-requests" class="hidden">
+    <div class="sectionhead">
+      <h3>Manage Requests</h3>
+      <button type="button" class="secondary" id="leader-request-refresh">
+        Refresh Requests
+      </button>
+    </div>
+    <p class="muted small">
+      Owner and Administrators see all requests.
+      Section Leaders see requests from their section
+      and can manage eligible categories.
+    </p>
+    <p class="notice" id="leader-request-message" aria-live="polite"></p>
+    <div id="leader-request-list" class="list"></div>
+  </div>
+</section>
+
+</main>
+<script>
+
+/*
+ * Bergholz Band Attendance Portal
+ * Navigation and page organization
+ *
+ * Existing panels and event handlers are preserved.
+ */
+
+(function () {
+  const main = document.querySelector('main');
+
+  const ids = {
+    home: [
+      'install-app-panel',
+      'section-onboarding',
+      'upcoming'
+    ],
+    calendar: ['calendar'],
+    attendance: ['detail'],
+    members: [],
+    admin: ['admin'],
+    requests: ['contact-panel'],
+    account: ['auth']
+  };
+
+  const views = {};
+
+  // Create a separate container for each navigation section.
+  for (const key of Object.keys(ids)) {
+    const section = document.createElement('div');
+
+    section.className =
+      'portal-view' +
+      (key === 'home' ? ' current-view' : '');
+
+    section.id = 'view-' + key;
+
+    section.setAttribute('role', 'region');
+    section.setAttribute(
+      'aria-label',
+      key === 'admin'
+        ? 'Management'
+        : key.charAt(0).toUpperCase() + key.slice(1)
+    );
+
+    main.append(section);
+    views[key] = section;
+  }
+
+  // Move existing website elements into their new sections.
+  for (const [key, elementIds] of Object.entries(ids)) {
+    for (const id of elementIds) {
+      const node = document.getElementById(id);
+
+      if (node) {
+        views[key].append(node);
+      }
+    }
+  }
+
+  // Move the calendar panel.
+  const calendar = document.getElementById('calendar');
+
+  if (calendar) {
+    views.calendar.append(calendar.closest('section.panel'));
+  }
+
+  // Move the upcoming events panel.
+  const upcoming = document.getElementById('upcoming');
+
+  if (upcoming) {
+    views.home.append(upcoming.closest('section.panel'));
+  }
+
+  // Create the personal attendance page.
+  const attendancePanel = document.createElement('section');
+
+  attendancePanel.className = 'panel';
+
+  attendancePanel.innerHTML = `
+    <h2>My Attendance</h2>
+    <p class="muted small">
+      Select an event to view or update your response.
+    </p>
+    <div class="list" id="attendance-event-list"></div>
+  `;
+
+  views.attendance.prepend(attendancePanel);
+
+  // Create the welcome section.
+  const homeWelcome = document.createElement('section');
+
+  homeWelcome.className = 'panel';
+
+  homeWelcome.innerHTML = `
+    <h2>Welcome to Bergholz Band</h2>
+    <p class="muted">
+      Find upcoming rehearsals and performances below.
+      Use the large navigation buttons above to access
+      the calendar, attendance, and your account.
+    </p>
+  `;
+
+  views.home.prepend(homeWelcome);
+
+  let active = 'home';
+
+  // Change the currently displayed page.
+  window.showPortalView = function (view) {
+
+    if (view === 'members') {
+      if (!window.userIsAdminForNav?.()) return;
+
+      view = 'admin';
+
+      const tab = document.querySelector(
+        '[data-tab="members"]'
+      );
+
+      if (tab) tab.click();
+    }
+
+    if (
+      view === 'admin' &&
+      !window.userIsLeaderForNav?.()
+    ) return;
+
+    if (
+      view === 'requests' &&
+      !window.userSignedInForNav?.()
+    ) return;
+
+    if (!views[view]) return;
+
+    active = view;
+
+    for (const [key, section] of Object.entries(views)) {
+      section.classList.toggle(
+        'current-view',
+        key === view
+      );
+    }
+
+    // Highlight the selected navigation button.
+    document.querySelectorAll('[data-view]').forEach(button => {
+
+      if (
+        button.dataset.view === view ||
+        (
+          view === 'admin' &&
+          button.dataset.view === 'members' &&
+          document.querySelector(
+            '[data-tab="members"]'
+          )?.classList.contains('active')
+        )
+      ) {
+        button.setAttribute('aria-current', 'page');
+      } else {
+        button.removeAttribute('aria-current');
+      }
+    });
+
+    window.scrollTo({
+      top: 0,
+      behavior: 'instant'
+    });
+  };
+
+  // Display navigation buttons based on member permissions.
+  window.refreshPortalNavigation = function () {
+
+    const signed = !!window.userSignedInForNav?.();
+    const leader = !!window.userIsLeaderForNav?.();
+    const admin = !!window.userIsAdminForNav?.();
+
+    const permissions = {
+      members: admin,
+      admin: leader,
+      requests: signed
+    };
+
+    for (const [key, visible] of Object.entries(permissions)) {
+      const button = document.querySelector(
+        '[data-view="' + key + '"]'
+      );
+
+      if (button) {
+        button.classList.toggle('hidden', !visible);
+      }
+    }
+
+    if (
+      (active === 'admin' && !leader) ||
+      (active === 'requests' && !signed)
+    ) {
+      window.showPortalView('home');
+    }
+  };
+
+  // Populate the personal attendance page.
+  window.renderPortalAttendance = function (
+    events,
+    user,
+    attendance
+  ) {
+    const list = document.getElementById(
+      'attendance-event-list'
+    );
+
+    if (!list) return;
+
+    if (!user) {
+      list.innerHTML = `
+        <p class="muted">
+          Sign in under My Account to respond to events.
+        </p>
+      `;
+      return;
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcoming = events
+      .filter(event =>
+        new Date(event.event_date + 'T12:00:00') >= today
+      )
+      .slice(0, 25);
+
+    list.replaceChildren();
+
+    if (!upcoming.length) {
+      list.textContent = 'No upcoming events.';
+      return;
+    }
+
+    for (const event of upcoming) {
+
+      const row = document.createElement('div');
+      row.className = 'item';
+
+      const info = document.createElement('div');
+
+      const heading = document.createElement('strong');
+      heading.textContent = event.title;
+
+      const meta = document.createElement('div');
+      meta.className = 'muted small';
+
+      const answer = attendance.find(a =>
+        Number(a.event_id) === Number(event.id) &&
+        Number(a.member_id) === Number(user.id)
+      );
+
+      meta.textContent =
+        event.event_date + ' · ' +
+        (
+          event.status === 'cancelled'
+            ? 'Cancelled'
+            : answer
+              ? ({
+                  yes: 'Attending',
+                  no: 'Not attending',
+                  maybe: 'Unsure'
+                }[answer.response] || 'Not answered')
+              : 'Not answered'
+        );
+
+      info.append(heading, meta);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'secondary';
+      button.textContent = 'View / Respond';
+
+      button.addEventListener('click', () =>
+        window.openPortalEvent?.(event.id)
+      );
+
+      row.append(info, button);
+      list.append(row);
+    }
+  };
+
+  // Activate navigation buttons.
+  document.querySelectorAll('[data-view]').forEach(button => {
+    button.addEventListener('click', () => {
+      window.showPortalView(button.dataset.view);
+    });
+  });
+
+})();
+</script>
+<script>
+
+let events=[],attendance=[],members=[],sections=[],user=null,
+    selected=null,editingMember=null,editingEvent=null,
+    view=new Date(2026,10,1);
+
+const $=id=>document.getElementById(id);
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#39;'
+}[c]));
+
+const fmt=d=>new Date(d+'T12:00:00')
+  .toLocaleDateString('en-US',{
+    weekday:'long',
+    month:'long',
+    day:'numeric',
+    year:'numeric'
+  });
+
+const admin=()=>user&&['admin','owner'].includes(user.role);
+const leader=()=>user&&['leader','admin','owner'].includes(user.role);
+
+const responseLabel={
+  yes:'Attending',
+  no:'Not attending',
+  maybe:'Unsure'
 };
 
-init().catch(e=>$('notice').textContent=e.message);
+window.userSignedInForNav=()=>!!user;
+window.userIsLeaderForNav=()=>!!leader();
+window.userIsAdminForNav=()=>!!admin();
+window.openPortalEvent=id=>openEvent(Number(id));
+
+async function api(path,opts={}){
+  const r=await fetch('/api'+path,{
+    ...opts,
+    headers:{
+      'Content-Type':'application/json',
+      ...(opts.headers||{})
+    }
+  });
+
+  let j;
+  try{
+    j=await r.json();
+  }catch{
+    throw Error('Server did not return a valid response');
+  }
+
+  if(!r.ok)throw Error(j.error||'Request failed');
+  return j;
+}
+
+const send=(path,data,method='POST')=>
+  api(path,{method,body:JSON.stringify(data)});
+
+function render(){
+  renderPortalAttendance(events,user,attendance);
+
+  const y=view.getFullYear(),m=view.getMonth();
+
+  $('month').textContent=view.toLocaleDateString('en-US',{
+    month:'long',
+    year:'numeric'
+  });
+
+  let html=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+    .map(x=>`<div class="days">${x}</div>`)
+    .join('');
+
+  const first=new Date(y,m,1).getDay();
+  const total=new Date(y,m+1,0).getDate();
+
+  for(let i=0;i<first;i++){
+    html+='<div class="day empty"></div>';
+  }
+
+  for(let day=1;day<=total;day++){
+    const key=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const list=events.filter(e=>e.event_date===key);
+
+    html+=`<div class="day">
+      <b>${day}</b>
+      ${list.map(e=>`
+        <button class="event ${esc(e.event_type)}
+          ${e.status==='cancelled'?'cancelled':''}"
+          data-open="${e.id}"
+          title="${esc(e.title)}">
+          ${esc(e.title)}
+        </button>
+      `).join('')}
+    </div>`;
+  }
+
+  $('calendar').innerHTML=html;
+
+  const now=new Date();
+  now.setHours(0,0,0,0);
+
+  const future=events.filter(e=>
+    new Date(e.event_date+'T12:00:00')>=now
+  ).slice(0,16);
+
+  $('upcoming').innerHTML=future.length
+    ?future.map(e=>`
+      <div class="item">
+        <div>
+          <strong>${esc(e.title)}</strong>
+          ${e.status==='cancelled'
+            ?'<span class="danger">(Cancelled)</span>'
+            :''}
+          <div class="muted">
+            ${fmt(e.event_date)}
+            ${e.start_time?' · '+esc(e.start_time):''}
+            ${e.location?' · '+esc(e.location):''}
+          </div>
+        </div>
+        <button class="secondary" data-open="${e.id}">
+          Details
+        </button>
+      </div>
+    `).join('')
+    :'<p class="muted">No upcoming events.</p>';
+
+  document.querySelectorAll('[data-open]').forEach(el=>{
+    el.onclick=()=>openEvent(+el.dataset.open);
+  });
+}
+
+function openEvent(id){
+  showPortalView('attendance');
+
+  selected=events.find(e=>e.id===id);
+  if(!selected)return;
+
+  $('detail').classList.remove('hidden');
+  $('detail-title').textContent=selected.title;
+
+  $('detail-info').textContent=
+    fmt(selected.event_date)+
+    (selected.start_time?' · '+selected.start_time:'')+
+    (selected.location?' · '+selected.location:'')+
+    (selected.status==='cancelled'?' · CANCELLED':'');
+
+  $('detail-notes').textContent=selected.notes||'';
+
+  if(!user){
+    $('response').innerHTML=
+      '<p>Sign in to respond to this event.</p>';
+    $('roster').innerHTML='';
+
+  }else if(user.section_confirmed===false){
+    $('response').innerHTML=
+      '<p>Select your section above before responding.</p>';
+    $('roster').innerHTML='';
+
+  }else{
+    const mine=attendance.find(a=>
+      a.event_id===id&&a.member_id===user.id
+    );
+
+    $('response').innerHTML=`
+      <p><strong>Your response:</strong>
+        ${mine?responseLabel[mine.response]:'Not answered'}
+      </p>
+      ${selected.status==='scheduled'
+        ?`<div class="rowactions">
+          ${['yes','no','maybe'].map(v=>`
+            <button data-response="${v}"
+              class="${mine?.response===v?'active':'secondary'}">
+              ${responseLabel[v]}
+            </button>
+          `).join('')}
+        </div>`
+        :'<p class="danger">This event is cancelled.</p>'
+      }
+    `;
+
+    document.querySelectorAll('[data-response]').forEach(el=>{
+      el.onclick=async()=>{
+        try{
+          el.disabled=true;
+
+          await send('/attendance',{
+            event_id:id,
+            response:el.dataset.response
+          });
+
+          await loadAttendance();
+          openEvent(id);
+          renderSummary();
+
+        }catch(e){
+          $('notice').textContent=e.message;
+        }
+      };
+    });
+
+    if(leader()){
+      const active=members.filter(m=>
+        m.active&&
+        m.section_confirmed!==0&&
+        (admin()||m.section_id===user.section_id)
+      );
+
+      const rows=active.map(m=>({
+        m,
+        response:attendance.find(a=>
+          a.event_id===id&&a.member_id===m.id
+        )?.response
+      }));
+
+      $('roster').innerHTML=
+        '<h3>Section responses</h3>'+
+        countsHTML(rows)+
+        `<div class="roster">
+          ${rows.map(({m,response})=>`
+            <div class="rosterline">
+              ${esc(m.display_name)} —
+              ${response?responseLabel[response]:'No response'}
+            </div>
+          `).join('')}
+        </div>`;
+
+    }else{
+      $('roster').innerHTML='';
+    }
+  }
+
+  $('detail').scrollIntoView({
+    behavior:'smooth',
+    block:'start'
+  });
+}
+
+function countsHTML(rows){
+  const c=v=>rows.filter(r=>r.response===v).length;
+
+  return `<div class="counts">
+    <span class="pill">Attending <strong>${c('yes')}</strong></span>
+    <span class="pill">Not attending <strong>${c('no')}</strong></span>
+    <span class="pill">Unsure <strong>${c('maybe')}</strong></span>
+    <span class="pill">No response <strong>${c(undefined)}</strong></span>
+  </div>`;
+}
+
+async function loadAttendance(){
+  attendance=user
+    ?(await api('/attendance')).attendance
+    :[];
+}
+
+function renderSummary(){
+  if(!leader())return;
+
+  const id=Number($('summary-event').value);
+  const event=events.find(e=>e.id===id);
+
+  if(!event){
+    $('summary-content').innerHTML=
+      '<p class="muted">Choose an event.</p>';
+    return;
+  }
+
+  const active=members.filter(m=>
+    m.active&&
+    m.section_confirmed!==0&&
+    (admin()||m.section_id===user.section_id)
+  );
+
+  const rows=active.map(m=>({
+    m,
+    response:attendance.find(a=>
+      a.event_id===id&&a.member_id===m.id
+    )?.response
+  }));
+
+  $('summary-content').innerHTML=
+    countsHTML(rows)+`
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Member</th><th>Response</th></tr>
+        </thead>
+        <tbody>
+          ${rows.map(({m,response})=>`
+            <tr>
+              <td>${esc(m.display_name)}</td>
+              <td>
+                ${admin()||user.role==='leader'
+                  ?`<select data-attend-member="${m.id}">
+                    <option value="" ${!response?'selected':''}>
+                      No response
+                    </option>
+                    ${['yes','no','maybe'].map(v=>`
+                      <option value="${v}"
+                        ${response===v?'selected':''}>
+                        ${responseLabel[v]}
+                      </option>
+                    `).join('')}
+                  </select>`
+                  :(response?responseLabel[response]:'No response')
+                }
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>`;
+
+  document.querySelectorAll('[data-attend-member]').forEach(el=>{
+    el.onchange=async()=>{
+      if(!el.value)return;
+
+      try{
+        await send('/attendance',{
+          event_id:id,
+          member_id:Number(el.dataset.attendMember),
+          response:el.value
+        });
+
+        await loadAttendance();
+        renderSummary();
+
+      }catch(e){
+        $('notice').textContent=e.message;
+      }
+    };
+  });
+}
+
+function renderAccess(){
+  if(!admin())return;
+
+  $('access-rows').innerHTML=members.map(m=>{
+    const isOwner=
+      m.email.toLowerCase()==='brandenstoll@gmail.com';
+
+    const isAdmin=m.role==='admin';
+
+    const editable=
+      !isOwner&&(user.role==='owner'||!isAdmin);
+
+    const roles=user.role==='owner'
+      ?['member','leader','admin']
+      :['member','leader'];
+
+    const roleSelect=isOwner
+      ?'<strong>Owner</strong>'
+      :`<select data-access-role="${m.id}"
+          ${editable?'':'disabled'}>
+          ${roles.map(r=>`
+            <option value="${r}" ${m.role===r?'selected':''}>
+              ${r==='leader'
+                ?'Section Leader'
+                :r==='admin'
+                  ?'Administrator'
+                  :'Member'}
+            </option>
+          `).join('')}
+        </select>`;
+
+    const sectionSelect=`
+      <select data-access-section="${m.id}"
+        ${editable?'':'disabled'}>
+        ${m.section_confirmed===0
+          ?'<option value="" selected>Awaiting Selection</option>'
+          :''}
+        ${sections.map(s=>`
+          <option value="${s.id}"
+            ${m.section_confirmed!==0&&
+              String(s.id)===String(m.section_id)
+                ?'selected':''}>
+            ${esc(s.name)}
+          </option>
+        `).join('')}
+      </select>`;
+
+    return `
+      <tr>
+        <td>
+          ${esc(m.display_name)}
+          <div class="small muted">${esc(m.email)}</div>
+        </td>
+        <td>${sectionSelect}</td>
+        <td>${roleSelect}</td>
+        <td>
+          ${editable
+            ?`<button class="secondary"
+                data-access-save="${m.id}">Save</button>`
+            :'Protected'}
+        </td>
+      </tr>`;
+  }).join('');
+
+  document.querySelectorAll('[data-access-save]').forEach(btn=>{
+    btn.onclick=async()=>{
+      const id=Number(btn.dataset.accessSave);
+      const m=members.find(x=>x.id===id);
+
+      const role=$('access-rows')
+        .querySelector(`[data-access-role="${id}"]`).value;
+
+      const section_id=Number(
+        $('access-rows')
+          .querySelector(`[data-access-section="${id}"]`).value
+      );
+
+      if(!section_id){
+        $('access-msg').textContent='Choose a valid section.';
+        return;
+      }
+
+      if(!confirm(
+        `Save ${m.display_name} as ${
+          role==='leader'
+            ?'Section Leader'
+            :role==='admin'
+              ?'Administrator'
+              :'Member'
+        }?`
+      ))return;
+
+      btn.disabled=true;
+
+      try{
+        await send('/members/'+id,{
+          role,
+          section_id
+        },'PATCH');
+
+        await refreshLeader();
+        $('access-msg').textContent='Access updated.';
+
+      }catch(e){
+        $('access-msg').textContent=e.message;
+        btn.disabled=false;
+      }
+    };
+  });
+}
+
+function renderMembers(){
+  if(!leader())return;
+
+  const rows=members.filter(m=>
+    $('member-filter').value==='all'||m.active
+  );
+
+  $('member-rows').innerHTML=rows.map(m=>`
+    <tr>
+      <td>${esc(m.display_name)}</td>
+      <td>${esc(m.email)}</td>
+      <td>${esc(
+        m.email==='brandenstoll@gmail.com'
+          ?'Owner'
+          :m.role==='leader'
+            ?'Section Leader'
+            :m.role==='admin'
+              ?'Administrator'
+              :'Member'
+      )}</td>
+      <td>${esc(
+        m.section_confirmed===0
+          ?'Awaiting selection'
+          :(sections.find(s=>s.id===m.section_id)?.name||'Unassigned')
+      )}</td>
+      <td>${m.active?'Active':'Inactive'}</td>
+      <td>
+        <div class="rowactions">
+          <button class="secondary" data-member="${m.id}">
+            Edit
+          </button>
+          ${m.id!==user.id
+            ?`<button class="secondary" data-toggle="${m.id}">
+              ${m.active?'Deactivate':'Reactivate'}
+            </button>`
+            :''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  document.querySelectorAll('[data-member]').forEach(b=>{
+    b.onclick=()=>editMember(+b.dataset.member);
+  });
+
+  document.querySelectorAll('[data-toggle]').forEach(b=>{
+    b.onclick=async()=>{
+      const m=members.find(x=>x.id===+b.dataset.toggle);
+
+      if(!confirm(
+        `${m.active?'Deactivate':'Reactivate'} ${m.display_name}?`
+      ))return;
+
+      try{
+        await send('/members/'+m.id,{
+          active:m.active?0:1
+        },'PATCH');
+
+        await refreshLeader();
+        $('member-msg').textContent='Member updated.';
+
+      }catch(e){
+        $('member-msg').textContent=e.message;
+      }
+    };
+  });
+}
+
+function editMember(id){
+  const m=members.find(x=>x.id===id);
+  if(!m)return;
+
+  editingMember=id;
+
+  const f=$('member-form');
+
+  f.elements.display_name.value=m.display_name;
+  f.elements.email.value=m.email;
+
+  if(admin()){
+    f.elements.section_id.value=
+      m.section_confirmed===0?'':m.section_id;
+
+    f.elements.role.value=m.role;
+  }
+
+  $('member-form-title').textContent='Edit member';
+  $('member-save').textContent='Save changes';
+  $('member-cancel').classList.remove('hidden');
+
+  $('member-form').scrollIntoView({
+    behavior:'smooth'
+  });
+}
+
+function resetMember(){
+  editingMember=null;
+  $('member-form').reset();
+
+  $('member-form-title').textContent='Add a member';
+  $('member-save').textContent='Add member';
+  $('member-cancel').classList.add('hidden');
+}
+
+function eventOptions(){
+  return events.map(e=>`
+    <option value="${e.id}">
+      ${esc(e.event_date)} — ${esc(e.title)}
+      ${e.status==='cancelled'?' (Cancelled)':''}
+    </option>
+  `).join('');
+}
+
+function renderEventOptions(){
+  const prev=$('summary-event').value;
+
+  $('summary-event').innerHTML=eventOptions();
+
+  if(events.some(e=>String(e.id)===prev)){
+    $('summary-event').value=prev;
+  }
+
+  const chosen=$('edit-event').value;
+
+  $('edit-event').innerHTML=
+    '<option value="">Add a new event</option>'+
+    eventOptions();
+
+  if(events.some(e=>String(e.id)===chosen)){
+    $('edit-event').value=chosen;
+  }
+
+  renderSummary();
+}
+
+function resetEvent(){
+  $('event-form').reset();
+  editingEvent=null;
+
+  $('edit-event').value='';
+  $('event-form-title').textContent='Add an event';
+  $('event-save').textContent='Add event';
+}
+
+function editEvent(id){
+  const e=events.find(x=>x.id===id);
+
+  if(!e){
+    resetEvent();
+    return;
+  }
+
+  editingEvent=id;
+
+  const f=$('event-form');
+
+  for(const k of [
+    'title',
+    'event_type',
+    'event_date',
+    'start_time',
+    'location',
+    'notes',
+    'status'
+  ]){
+    f.elements[k].value=e[k]||'';
+  }
+
+  $('event-form-title').textContent='Edit event';
+  $('event-save').textContent='Save changes';
+}
+
+async function refreshLeader(){
+  if(!leader())return;
+
+  [members,sections]=await Promise.all([
+    api('/members').then(r=>r.members),
+    api('/sections').then(r=>r.sections)
+  ]);
+
+  $('member-section-wrap').classList.toggle(
+    'hidden',!admin()
+  );
+
+  $('member-role-wrap').classList.toggle(
+    'hidden',!admin()
+  );
+
+  $('member-section').innerHTML=
+    '<option value="" disabled selected>Select Your Section</option>'+
+    sections.map(s=>`
+      <option value="${s.id}">
+        ${esc(s.name)}
+      </option>
+    `).join('');
+
+  $('member-section').value='';
+
+  renderMembers();
+  renderAccess();
+  renderEventOptions();
+}
+
+async function loadOnboarding(){
+  const pending=
+    !!user&&user.section_confirmed===false;
+
+  $('section-onboarding').classList.toggle(
+    'hidden',!pending
+  );
+
+  if(pending){
+    const result=await api('/sections');
+
+    $('onboarding-section').innerHTML=
+      '<option value="" disabled selected>Select Your Section</option>'+
+      result.sections.map(s=>`
+        <option value="${s.id}">
+          ${esc(s.name)}
+        </option>
+      `).join('');
+  }
+}
+
+$('section-onboarding-form').onsubmit=async ev=>{
+  ev.preventDefault();
+
+  const section_id=Number(
+    $('onboarding-section').value
+  );
+
+  if(!section_id){
+    $('section-onboarding-message').textContent=
+      'Please select your section.';
+    return;
+  }
+
+  try{
+    await send('/me/section',{section_id});
+
+    $('section-onboarding-message').textContent=
+      'Section saved.';
+
+    await init();
+
+  }catch(e){
+    $('section-onboarding-message').textContent=
+      e.message;
+  }
+};
+
+/*
+ * Initialize the website and update navigation permissions.
+ */
+async function init(){
+  events=(await api('/events')).events;
+  user=(await api('/me')).user;
+
+  await loadAttendance();
+  await loadOnboarding();
+
+  $('login').classList.toggle('hidden',!!user);
+  $('account').classList.toggle('hidden',!user);
+
+  $('admin').classList.toggle(
+    'hidden',
+    !leader()||user?.section_confirmed===false
+  );
+
+  document.querySelector('[data-tab="members"]')
+    .classList.toggle('hidden',!admin());
+
+  document.querySelector('[data-tab="events"]')
+    .classList.toggle('hidden',!admin());
+
+  $('access-tab-button')
+    .classList.toggle('hidden',!admin());
+
+  $('identity').textContent=user
+    ?`Signed in: ${user.name} (${user.role})`
+    :'';
+
+  $('passkey-setup').classList.toggle(
+    'hidden',!user
+  );
+
+  if(leader()){
+    await refreshLeader();
+  }else{
+    members=[];
+    sections=[];
+  }
+
+  render();
+  await loadRequestsUI();
+
+  // Update the new navigation based on account permissions.
+  refreshPortalNavigation();
+
+  if(selected){
+    openEvent(selected.id);
+  }
+}
+
+/*
+ * Calendar controls
+ */
+$('prev').onclick=()=>{
+  view=new Date(
+    view.getFullYear(),
+    view.getMonth()-1,
+    1
+  );
+  render();
+};
+
+$('next').onclick=()=>{
+  view=new Date(
+    view.getFullYear(),
+    view.getMonth()+1,
+    1
+  );
+  render();
+};
+
+$('today').onclick=()=>{
+  const n=new Date();
+
+  view=new Date(
+    n.getFullYear(),
+    n.getMonth(),
+    1
+  );
+
+  render();
+};
+
+$('close-detail').onclick=()=>{
+  $('detail').classList.add('hidden');
+  selected=null;
+};
+
+/*
+ * Email sign-in
+ */
+$('send').onclick=async()=>{
+  try{
+    $('notice').textContent='Sending…';
+
+    const r=await send('/auth/request',{
+      email:$('email').value
+    });
+
+    $('notice').textContent=r.message;
+    $('verify').classList.remove('hidden');
+
+  }catch(e){
+    $('notice').textContent=e.message;
+  }
+};
+
+$('confirm').onclick=async()=>{
+  try{
+    await send('/auth/verify',{
+      email:$('email').value,
+      code:$('code').value
+    });
+
+    $('notice').textContent='Signed in.';
+
+    await init();
+    showPortalView('home');
+
+  }catch(e){
+    $('notice').textContent=e.message;
+  }
+};
+
+/*
+ * Sign out
+ */
+$('logout').onclick=async()=>{
+  try{
+    await api('/auth/logout',{
+      method:'POST'
+    });
+
+    selected=null;
+    $('detail').classList.add('hidden');
+
+    await init();
+    showPortalView('home');
+
+  }catch(e){
+    $('notice').textContent=e.message;
+  }
+};
+
+/*
+ * Administrative dashboard tabs
+ */
+document.querySelectorAll('[data-tab]').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('[data-tab]').forEach(x=>{
+      x.classList.toggle('active',x===b);
+    });
+
+    for(const t of [
+      'summary',
+      'members',
+      'events',
+      'access',
+      'requests'
+    ]){
+      $('tab-'+t).classList.toggle(
+        'hidden',
+        b.dataset.tab!==t
+      );
+    }
+  };
+});
+
+$('summary-event').onchange=renderSummary;
+$('member-filter').onchange=renderMembers;
+$('member-cancel').onclick=resetMember;
+
+/*
+ * Add or edit a member
+ */
+$('member-form').onsubmit=async ev=>{
+  ev.preventDefault();
+
+  const f=ev.target;
+  const data=Object.fromEntries(new FormData(f));
+
+  if(admin()&&!data.section_id){
+    $('member-msg').textContent=
+      'Please select a section.';
+    return;
+  }
+
+  if(!admin()){
+    delete data.section_id;
+    delete data.role;
+  }
+
+  try{
+    await send(
+      editingMember
+        ?'/members/'+editingMember
+        :'/members',
+      data,
+      editingMember?'PATCH':'POST'
+    );
+
+    resetMember();
+    await refreshLeader();
+
+    $('member-msg').textContent='Member saved.';
+
+  }catch(e){
+    $('member-msg').textContent=e.message;
+  }
+};
+
+/*
+ * Mass member entry
+ */
+let bulkEntries=[];
+
+$('bulk-toggle').onclick=()=>{
+  const open=
+    $('bulk-panel').classList.toggle('hidden')===false;
+
+  $('bulk-toggle').setAttribute(
+    'aria-expanded',
+    String(open)
+  );
+};
+
+$('bulk-input').oninput=()=>{
+  bulkEntries=[];
+  $('bulk-save').disabled=true;
+  $('bulk-results').innerHTML='';
+
+  $('bulk-msg').textContent=
+    'Review entries again after making changes.';
+};
+
+$('bulk-preview').onclick=()=>{
+  const lines=$('bulk-input').value
+    .split(/\r?\n/)
+    .map(x=>x.trim())
+    .filter(Boolean);
+
+  const seen=new Set();
+  const valid=[];
+  const errors=[];
+
+  for(let i=0;i<lines.length;i++){
+    const line=lines[i];
+    const at=line.lastIndexOf(',');
+
+    if(at<1){
+      errors.push(
+        `Line ${i+1}: use Name, email@example.com`
+      );
+      continue;
+    }
+
+    const name=line.slice(0,at).trim();
+    const email=line.slice(at+1).trim().toLowerCase();
+
+    if(
+      !name||
+      name.length>100||
+      !/^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/.test(email)
+    ){
+      errors.push(
+        `Line ${i+1}: invalid name or email`
+      );
+      continue;
+    }
+
+    if(seen.has(email)){
+      errors.push(
+        `Line ${i+1}: duplicate email in pasted list`
+      );
+      continue;
+    }
+
+    seen.add(email);
+
+    valid.push({
+      display_name:name,
+      email
+    });
+  }
+
+  bulkEntries=valid;
+
+  $('bulk-save').disabled=
+    !valid.length||errors.length>0;
+
+  $('bulk-msg').textContent=errors.length
+    ?errors.join(' | ')
+    :`${valid.length} members ready to add.`;
+
+  $('bulk-results').innerHTML=valid.length
+    ?'<table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>'+
+      valid.map(m=>`
+        <tr>
+          <td>${esc(m.display_name)}</td>
+          <td>${esc(m.email)}</td>
+        </tr>
+      `).join('')+
+      '</tbody></table>'
+    :'';
+};
+
+$('bulk-save').onclick=async()=>{
+  if(
+    !bulkEntries.length||
+    !confirm(`Add ${bulkEntries.length} members?`)
+  )return;
+
+  const button=$('bulk-save');
+
+  button.disabled=true;
+  $('bulk-msg').textContent='Adding members…';
+
+  try{
+    const result=await send('/members/bulk',{
+      members:bulkEntries
+    });
+
+    $('bulk-msg').textContent=
+      `Import complete. Added: ${result.added??0}. `+
+      `Skipped: ${result.skipped??0}.`;
+
+    $('bulk-results').textContent=
+      Array.isArray(result.errors)&&result.errors.length
+        ?result.errors.map(x=>
+            typeof x==='string'
+              ?x
+              :JSON.stringify(x)
+          ).join(' | ')
+        :'';
+
+    bulkEntries=[];
+    $('bulk-input').value='';
+
+    await refreshLeader();
+
+  }catch(e){
+    $('bulk-msg').textContent=
+      e.message+
+      ' The bulk API endpoint must be installed before this button can save members.';
+
+    button.disabled=false;
+  }
+};
+
+/*
+ * Add or edit events
+ */
+$('edit-event').onchange=()=>{
+  const id=Number($('edit-event').value);
+
+  id?editEvent(id):resetEvent();
+};
+
+$('event-reset').onclick=resetEvent;
+
+$('event-form').onsubmit=async ev=>{
+  ev.preventDefault();
+
+  const data=Object.fromEntries(
+    new FormData(ev.target)
+  );
+
+  if(!editingEvent){
+    delete data.status;
+  }
+
+  try{
+    await send(
+      editingEvent
+        ?'/events/'+editingEvent
+        :'/events',
+      data,
+      editingEvent?'PATCH':'POST'
+    );
+
+    $('event-msg').textContent='Event saved.';
+
+    resetEvent();
+
+    events=(await api('/events')).events;
+
+    render();
+    renderEventOptions();
+
+    if(selected){
+      openEvent(selected.id);
+    }
+
+  }catch(e){
+    $('event-msg').textContent=e.message;
+  }
+};
+
+// Request management: uses the existing signed-in member and /api/requests.
+
+let supportRequests = [];
+
+const requestCategoriesForLeaders = [
+  'Attendance Correction',
+  'Member Information Update',
+  'Suggestion / General Question'
+];
+
+function mayManageRequest(r) {
+  return admin() || (
+    user?.role === 'leader' &&
+    user.section_id != null &&
+    Number(r.section_id) === Number(user.section_id) &&
+    requestCategoriesForLeaders.includes(r.request_type)
+  );
+}
+
+function requestCard(r, manage) {
+  const status = esc(r.status || 'New');
+
+  const who = r.assigned_to
+    ? 'Member #' + esc(r.assigned_to)
+    : 'Unassigned';
+
+  const controls = manage && mayManageRequest(r)
+    ? `
+      <div class="rowactions">
+        <button
+          type="button"
+          class="secondary"
+          data-claim-request="${r.id}"
+          ${
+            r.assigned_to &&
+            Number(r.assigned_to) !== Number(user.id) &&
+            !admin()
+              ? 'disabled'
+              : ''
+          }>
+          ${r.assigned_to ? 'Assigned' : 'Take Ownership'}
+        </button>
+
+        <select
+          aria-label="Status for ${esc(r.tracking_number || r.id)}"
+          data-status-request="${r.id}">
+          ${['New', 'In Progress', 'Resolved'].map(v => `
+            <option value="${v}" ${r.status === v ? 'selected' : ''}>
+              ${v}
+            </option>
+          `).join('')}
+        </select>
+
+        <button
+          type="button"
+          class="secondary"
+          data-save-request="${r.id}">
+          Save Status
+        </button>
+      </div>
+    `
+    : '';
+
+  return `
+    <div class="request-card">
+      <div class="sectionhead">
+        <strong>
+          ${esc(r.tracking_number || '#' + r.id)}
+          · ${esc(r.request_type)}
+        </strong>
+        <span class="request-status">${status}</span>
+      </div>
+
+      <div class="muted">
+        Submitted by ${esc(r.member_name)}
+        · ${esc(r.created_at)}
+        · ${who}
+      </div>
+
+      ${
+        r.event_reference
+          ? `<div class="muted">
+              Event: ${esc(r.event_reference)}
+            </div>`
+          : ''
+      }
+
+      <p>${esc(r.description)}</p>
+
+      ${controls}
+    </div>
+  `;
+}
+
+function renderRequestsUI() {
+  if (!user) return;
+
+  const mine = supportRequests.filter(r =>
+    Number(r.member_id) === Number(user.id)
+  );
+
+  $('my-request-list').innerHTML = mine.length
+    ? mine.map(r => requestCard(r, false)).join('')
+    : '<p class="muted">No requests submitted yet.</p>';
+
+  if (leader()) {
+    $('leader-request-list').innerHTML = supportRequests.length
+      ? supportRequests.map(r => requestCard(r, true)).join('')
+      : '<p class="muted">No requests found.</p>';
+
+    $('leader-request-list')
+      .querySelectorAll('[data-claim-request]')
+      .forEach(b => {
+        b.onclick = () => changeRequest(
+          b.dataset.claimRequest,
+          {
+            id: Number(b.dataset.claimRequest),
+            take_ownership: true
+          }
+        );
+      });
+
+    $('leader-request-list')
+      .querySelectorAll('[data-save-request]')
+      .forEach(b => {
+        b.onclick = () => {
+          const id = Number(b.dataset.saveRequest);
+
+          const select = $('leader-request-list')
+            .querySelector(`[data-status-request="${id}"]`);
+
+          changeRequest(id, {
+            id,
+            status: select.value
+          });
+        };
+      });
+  }
+}
+
+async function loadRequestsUI() {
+  $('contact-panel').classList.toggle('hidden', !user);
+  $('my-requests').classList.toggle('hidden', !user);
+
+  if (!user) {
+    supportRequests = [];
+    return;
+  }
+
+  try {
+    supportRequests =
+      (await api('/requests')).requests || [];
+
+    renderRequestsUI();
+
+    $('request-message').textContent = '';
+
+  } catch (e) {
+    $('request-message').textContent =
+      'Unable to load requests: ' + e.message;
+
+    if (leader()) {
+      $('leader-request-message').textContent = e.message;
+    }
+  }
+}
+
+async function changeRequest(id, payload) {
+  const message = $('leader-request-message');
+
+  message.textContent = 'Saving…';
+
+  try {
+    await send('/requests', payload, 'PATCH');
+    await loadRequestsUI();
+
+    message.textContent = 'Request updated.';
+
+  } catch (e) {
+    message.textContent = e.message;
+  }
+}
+
+// Open or close the contact form.
+$('contact-toggle').onclick = () => {
+  const opened =
+    $('contact-form').classList.toggle('hidden') === false;
+
+  $('contact-toggle').textContent = opened
+    ? 'Close Contact Form'
+    : 'Open Contact Form';
+
+  $('contact-toggle').setAttribute(
+    'aria-expanded',
+    String(opened)
+  );
+};
+
+// Refresh requests.
+$('request-refresh').onclick = loadRequestsUI;
+$('leader-request-refresh').onclick = loadRequestsUI;
+
+// Submit a new request.
+$('contact-form').onsubmit = async ev => {
+  ev.preventDefault();
+
+  const btn = $('request-submit');
+
+  btn.disabled = true;
+  $('request-message').textContent = 'Submitting request…';
+
+  try {
+    const result = await send('/requests', {
+      request_type: $('request-type').value,
+      event_reference: $('request-event').value,
+      description: $('request-description').value
+    });
+
+    $('contact-form').reset();
+
+    await loadRequestsUI();
+
+    $('request-message').textContent =
+      'Request submitted. Tracking number: ' +
+      (result.request?.tracking_number || 'Pending');
+
+  } catch (e) {
+    $('request-message').textContent = e.message;
+
+  } finally {
+    btn.disabled = false;
+  }
+};
+
+// Start the attendance portal.
+init().catch(e => {
+  $('notice').textContent = e.message;
+});
+
 </script>
+
 <script src="/attendance-section-update.js"></script>
+
 <script>
+
 // Mobile installation: prompt when supported, otherwise show device-specific steps.
 (() => {
   const panel = document.getElementById('install-app-panel');
