@@ -1367,10 +1367,19 @@ function countsHTML(rows){
   </div>`;
 }
 
+let attendanceVerifications = [];
+
 async function loadAttendance(){
-  attendance=user
-    ?(await api('/attendance')).attendance
-    :[];
+  attendance = user
+    ? (await api('/attendance')).attendance
+    : [];
+
+  attendanceVerifications = [];
+
+  if (leader()) {
+    const result = await api('/attendance/verification');
+    attendanceVerifications = result.verifications || [];
+  }
 }
 
 function renderSummary(){
