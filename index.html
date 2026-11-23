@@ -1412,7 +1412,11 @@ function renderSummary(){
     <div class="tablewrap">
       <table>
         <thead>
-          <tr><th>Member</th><th>Response</th></tr>
+          <tr>
+  <th>Member</th>
+  <th>Response</th>
+  <th>Actual Attendance</th>
+</tr>
         </thead>
         <tbody>
           ${rows.map(({m,response})=>`
@@ -1434,7 +1438,33 @@ function renderSummary(){
                   :(response?responseLabel[response]:'No response')
                 }
               </td>
-            </tr>
+ <td>
+  <select data-verify-member="${m.id}">
+    <option value=""
+  ${!attendanceVerifications.some(v =>
+    Number(v.event_id) === id &&
+    Number(v.member_id) === Number(m.id)
+  ) ? 'selected' : ''}>
+  Not Verified
+</option>
+    <option value="present"
+      ${attendanceVerifications.some(v =>
+        Number(v.event_id) === id &&
+        Number(v.member_id) === Number(m.id) &&
+        v.status === 'present'
+      ) ? 'selected' : ''}>
+      Confirmed Present
+    </option>
+    <option value="no_show"
+      ${attendanceVerifications.some(v =>
+        Number(v.event_id) === id &&
+        Number(v.member_id) === Number(m.id) &&
+        v.status === 'no_show'
+      ) ? 'selected' : ''}>
+      No Show
+    </option>
+  </select>
+</td>           </tr>
           `).join('')}
         </tbody>
       </table>
@@ -1459,7 +1489,37 @@ function renderSummary(){
       }
     };
   });
-}
+  document.querySelectorAll('[data-verify-member]').forEach(el=>{
+    el.onchange=async()=>{
+      const status=el.value;
+
+      if(!status){
+        $('notice').textContent=
+          'Clearing a verification is not available yet.';
+        renderSummary();
+        return;
+      }
+
+      el.disabled=true;
+
+      try{
+        await send('/attendance/verification',{
+          event_id:id,
+          member_id:Number(el.dataset.verifyMember),
+          status
+        });
+
+        await loadAttendance();
+        renderSummary();
+
+        $('notice').textContent='Attendance verification saved.';
+
+      }catch(e){
+        $('notice').textContent=e.message;
+        el.disabled=false;
+      }
+    };
+  });}
 
 function renderAccess(){
   if(!admin())return;
