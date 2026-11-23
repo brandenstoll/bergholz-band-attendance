@@ -68,7 +68,12 @@ export async function onRequest({request,env,params}){
    
 const rows = await env.DB.prepare(
   `SELECT m.id, m.display_name, m.email,
-          m.section_id, s.name AS section_name,
+          m.section_id,
+CASE
+  WHEN m.section_confirmed = 1
+  THEN s.name
+  ELSE 'Not Selected'
+END AS section_name,
           m.section_confirmed, m.role, m.active
    FROM members m
    LEFT JOIN sections s ON s.id = m.section_id
