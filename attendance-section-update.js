@@ -80,12 +80,7 @@ renderSummary = function () {
     el.onchange = async () => {
       const status = el.value;
 
-      if (!status) {
-        document.getElementById('notice').textContent =
-          'Clearing a verification is not available yet.';
-        renderSummary();
-        return;
-      }
+      const newStatus = status || 'unverified';
 
       el.disabled = true;
 
@@ -93,7 +88,7 @@ renderSummary = function () {
         await send('/attendance/verification', {
           event_id: id,
           member_id: Number(el.dataset.verifyMember),
-          status
+          status: newStatus
         });
 
         await loadAttendance();
