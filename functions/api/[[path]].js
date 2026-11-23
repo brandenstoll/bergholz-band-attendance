@@ -63,6 +63,71 @@ export async function onRequest({request,env,params}){
    }
    await env.DB.prepare('INSERT INTO attendance(event_id,member_id,response) VALUES(?,?,?) ON CONFLICT(event_id,member_id) DO UPDATE SET response=excluded.response,updated_at=CURRENT_TIMESTAMP').bind(d.event_id,targetId,d.response).run();return json({ok:true})
   }
+  if(path==='/attendance/verification'&&method==='GET'){
+  if(!user)return json({error:'Unauthorized'},401);
+  if(!leader(user))return json({error:'Forbidden'},403);
+
+  const rows=await env.DB.prepare(`
+    SELECT v.event_id,v.member_id,v.status,
+           v.verified_by,v.verified_at,
+           m.display_name,m.section_id
+    FROM attendance_verification v
+    JOIN members m ON m.id=v.member_id
+    WHERE m.active=1
+      AND (?=1 OR m.section_id=?)
+    ORDER BY v.event_id,m.display_name
+  `).bind(admin(user)?1:0,user.section_id).all();
+
+  return json({verifications:rows.results});
+}
+
+if(path==='/attendance/verification'&&method==='POST'){
+  if(!user)return json({error:'Unauthorized'},401);
+  if(!leader(user))return json({error:'Forbidden'},403);
+
+  const d=await body(request);
+  const eventId=Number(d?.event_id);
+  const memberId=Number(d?.member_id);
+  const status=d?.status;
+
+  if(!Number.isSafeInteger(eventId)||eventId<1||
+     !Number.isSafeInteger(memberId)||memberId<1||
+     !['present','no_show'].includes(status)){
+    return json({error:'Invalid verification'},400);
+  }
+
+  const event=await env.DB.prepare(
+    'SELECT id FROM events WHERE id=?'
+  ).bind(eventId).first();
+
+  if(!event)return json({error:'Event not found'},404);
+
+  const member=await env.DB.prepare(`
+    SELECT id,section_id
+    FROM members
+    WHERE id=? AND active=1
+  `).bind(memberId).first();
+
+  if(!member)return json({error:'Member not found'},404);
+
+  if(!admin(user)&&
+     (!user.section_id||member.section_id!==user.section_id)){
+    return json({error:'Forbidden'},403);
+  }
+
+  await env.DB.prepare(`
+    INSERT INTO attendance_verification
+      (event_id,member_id,status,verified_by)
+    VALUES (?,?,?,?)
+    ON CONFLICT(event_id,member_id)
+    DO UPDATE SET
+      status=excluded.status,
+      verified_by=excluded.verified_by,
+      verified_at=CURRENT_TIMESTAMP
+  `).bind(eventId,memberId,status,user.id).run();
+
+  return json({ok:true});
+}
   if(path==='/members'&&method==='GET'){
    if(!user)return json({error:'Unauthorized'},401);
    
