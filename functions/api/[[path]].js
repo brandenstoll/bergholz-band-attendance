@@ -92,7 +92,7 @@ if(path==='/attendance/verification'&&method==='POST'){
 
   if(!Number.isSafeInteger(eventId)||eventId<1||
      !Number.isSafeInteger(memberId)||memberId<1||
-     !['present','no_show'].includes(status)){
+     !['present','no_show','unverified'].includes(status)){
     return json({error:'Invalid verification'},400);
   }
 
@@ -113,6 +113,15 @@ if(path==='/attendance/verification'&&method==='POST'){
   if(!admin(user)&&
      (!user.section_id||member.section_id!==user.section_id)){
     return json({error:'Forbidden'},403);
+  }
+
+  if (status === 'unverified') {
+    await env.DB.prepare(`
+      DELETE FROM attendance_verification
+      WHERE event_id=? AND member_id=?
+    `).bind(eventId,memberId).run();
+
+    return json({ok:true});
   }
 
   await env.DB.prepare(`
