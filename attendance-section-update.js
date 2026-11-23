@@ -35,11 +35,31 @@ renderSummary = function () {
     <thead><tr><th>Instrument group</th><th>Attending</th><th>Not attending</th><th>Unsure</th><th>No response</th></tr></thead>
     <tbody>${sectionRows}${totals}</tbody></table></div>`;
   const roster = `<h3>Individual responses</h3><div class="tablewrap"><table>
-    <thead><tr><th>Member</th><th>Response</th></tr></thead><tbody>${rows.map(({m,response}) =>
+    <thead><tr><th>Member</th><th>Response</th><th>Actual Attendance</th></tr></thead><tbody>${rows.map(({m,response}) =>
       `<tr><td>${esc(m.display_name)}</td><td><select data-attend-member="${m.id}">
       <option value="" ${!response?'selected':''}>No response</option>
       ${['yes','no','maybe'].map(v => `<option value="${v}" ${response===v?'selected':''}>${responseLabel[v]}</option>`).join('')}
-      </select></td></tr>`).join('')}</tbody></table></div>`;
+      </select></td>
+<td>
+  <select data-verify-member="${m.id}">
+    <option value="" ${!attendanceVerifications.some(v =>
+      Number(v.event_id) === id &&
+      Number(v.member_id) === Number(m.id)
+    ) ? 'selected' : ''}>Not Verified</option>
+
+    <option value="present" ${attendanceVerifications.some(v =>
+      Number(v.event_id) === id &&
+      Number(v.member_id) === Number(m.id) &&
+      v.status === 'present'
+    ) ? 'selected' : ''}>Confirmed Present</option>
+
+    <option value="no_show" ${attendanceVerifications.some(v =>
+      Number(v.event_id) === id &&
+      Number(v.member_id) === Number(m.id) &&
+      v.status === 'no_show'
+    ) ? 'selected' : ''}>No Show</option>
+  </select>
+</td></tr>`).join('')}</tbody></table></div>`;
   target.innerHTML = table + roster;
   target.querySelectorAll('[data-attend-member]').forEach(el => el.onchange = async () => {
     if (!el.value) { renderSummary(); return; }
@@ -56,4 +76,35 @@ renderSummary = function () {
       renderSummary();
     }
   });
-};
+   target.querySelectorAll('[data-verify-member]').forEach(el => {
+    el.onchange = async () => {
+      const status = el.value;
+
+      if (!status) {
+        document.getElementById('notice').textContent =
+          'Clearing a verification is not available yet.';
+        renderSummary();
+        return;
+      }
+
+      el.disabled = true;
+
+      try {
+        await send('/attendance/verification', {
+          event_id: id,
+          member_id: Number(el.dataset.verifyMember),
+          status
+        });
+
+        await loadAttendance();
+        renderSummary();
+
+        document.getElementById('notice').textContent =
+          'Attendance verification saved.';
+
+      } catch (e) {
+        document.getElementById('notice').textContent = e.message;
+        renderSummary();
+      }
+    };
+  }); };
