@@ -81,7 +81,7 @@ renderSummary = function () {
       const status = el.value;
 
       const newStatus = status || 'unverified';
-
+alert('Sending attendance status: ' + newStatus);
       el.disabled = true;
 
       try {
