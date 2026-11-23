@@ -944,7 +944,13 @@ header .brand-copy { min-width: 0; }
   `;
 
   views.home.prepend(homeWelcome);
-
+// Remove stray "null" text from the Home page.
+for (const node of views.home.childNodes) {
+  if (node.nodeType === Node.TEXT_NODE &&
+      node.textContent.trim() === 'null') {
+    node.remove();
+  }
+}
   let active = 'home';
 
   // Change the currently displayed page.
