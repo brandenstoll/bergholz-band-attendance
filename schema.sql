@@ -5,3 +5,11 @@ CREATE TABLE IF NOT EXISTS attendance (event_id INTEGER NOT NULL REFERENCES even
 CREATE TABLE IF NOT EXISTS login_codes (email TEXT PRIMARY KEY COLLATE NOCASE, code_hash TEXT NOT NULL, expires_at INTEGER NOT NULL, attempts INTEGER NOT NULL DEFAULT 0);
 CREATE TABLE IF NOT EXISTS sessions (token_hash TEXT PRIMARY KEY, member_id INTEGER NOT NULL REFERENCES members(id), expires_at INTEGER NOT NULL);
 INSERT OR IGNORE INTO sections (id,name) VALUES (1,'Baritone & Tenor Horn');
+CREATE TABLE IF NOT EXISTS attendance_verification (
+  event_id INTEGER NOT NULL REFERENCES events(id),
+  member_id INTEGER NOT NULL REFERENCES members(id),
+  status TEXT NOT NULL CHECK(status IN ('present', 'no_show')),
+  verified_by INTEGER NOT NULL REFERENCES members(id),
+  verified_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (event_id, member_id)
+);
