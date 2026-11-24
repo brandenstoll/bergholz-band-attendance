@@ -214,7 +214,7 @@ return json({members: rows.results});
    const d=await body(request);const e={...old,...d};if(!['rehearsal','performance'].includes(e.event_type)||!goodDate(e.event_date)||!String(e.title||'').trim()||String(e.title).length>150||!goodTime(e.start_time??null)||!['scheduled','cancelled'].includes(e.status))return json({error:'Invalid event details'},400);
    await env.DB.prepare('UPDATE events SET title=?,event_type=?,event_date=?,start_time=?,location=?,notes=?,status=? WHERE id=?').bind(e.title.trim(),e.event_type,e.event_date,e.start_time||null,String(e.location||'').trim()||null,String(e.notes||'').trim()||null,e.status,id).run();return json({ok:true})
   }if(eventMatch && method === 'DELETE'){
-  if(user?.role !== 'owner'){
+  if(!owner(user)){
     return json({error:'Owner access required'},403);
   }
 
