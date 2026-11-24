@@ -213,7 +213,45 @@ return json({members: rows.results});
    if(!admin(user))return json({error:'Forbidden'},403);const id=Number(eventMatch[1]);const old=await env.DB.prepare('SELECT * FROM events WHERE id=?').bind(id).first();if(!old)return json({error:'Event not found'},404);
    const d=await body(request);const e={...old,...d};if(!['rehearsal','performance'].includes(e.event_type)||!goodDate(e.event_date)||!String(e.title||'').trim()||String(e.title).length>150||!goodTime(e.start_time??null)||!['scheduled','cancelled'].includes(e.status))return json({error:'Invalid event details'},400);
    await env.DB.prepare('UPDATE events SET title=?,event_type=?,event_date=?,start_time=?,location=?,notes=?,status=? WHERE id=?').bind(e.title.trim(),e.event_type,e.event_date,e.start_time||null,String(e.location||'').trim()||null,String(e.notes||'').trim()||null,e.status,id).run();return json({ok:true})
+  }if(eventMatch && method === 'DELETE'){
+  if(user?.role !== 'owner'){
+    return json({error:'Owner access required'},403);
   }
+
+  const id = Number(eventMatch[1]);
+
+  const event = await env.DB.prepare(
+    'SELECT id,status FROM events WHERE id=?'
+  ).bind(id).first();
+
+  if(!event){
+    return json({error:'Event not found'},404);
+  }
+
+  if(event.status !== 'cancelled'){
+    return json({error:'Only cancelled events can be deleted'},400);
+  }
+
+  const results = await env.DB.batch([
+  env.DB.prepare(
+    "DELETE FROM attendance_verification WHERE event_id=? AND EXISTS (SELECT 1 FROM events WHERE id=? AND status='cancelled')"
+  ).bind(id,id),
+
+  env.DB.prepare(
+    "DELETE FROM attendance WHERE event_id=? AND EXISTS (SELECT 1 FROM events WHERE id=? AND status='cancelled')"
+  ).bind(id,id),
+
+  env.DB.prepare(
+    "DELETE FROM events WHERE id=? AND status='cancelled'"
+  ).bind(id)
+]);
+
+if(!results[2].meta.changes){
+    return json({error:'Event was not deleted'},409);
+  }
+
+  return json({ok:true});
+}
   return json({error:'Not found'},404);
  }catch(e){console.error('Bergholz API failure',method,path,e?.message||e);return json({error:'Request failed'},500)}
 }
