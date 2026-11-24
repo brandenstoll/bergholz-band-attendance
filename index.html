@@ -1779,7 +1779,11 @@ function resetEvent(){
 
   $('edit-event').value='';
   $('event-form-title').textContent='Add an event';
-  $('event-save').textContent='Add event';
+  $('event-save').textContent='Add event';const deleteBtn = $('event-delete');
+if(deleteBtn){
+  deleteBtn.hidden = true;
+  deleteBtn.onclick = null;
+}
 }
 
 function editEvent(id){
@@ -1808,6 +1812,52 @@ function editEvent(id){
 
   $('event-form-title').textContent='Edit event';
   $('event-save').textContent='Save changes';
+let deleteBtn = $('event-delete');
+
+if(!deleteBtn){
+  deleteBtn = document.createElement('button');
+  deleteBtn.id = 'event-delete';
+  deleteBtn.type = 'button';
+  deleteBtn.textContent = 'Delete Event';
+  deleteBtn.style.background = '#b91c1c';
+  deleteBtn.style.color = '#ffffff';
+  deleteBtn.style.marginTop = '10px';
+
+  $('event-save').after(deleteBtn);
+}
+
+deleteBtn.hidden = !(
+  user?.role === 'owner' &&
+  e.status === 'cancelled'
+);
+
+deleteBtn.onclick = async () => {
+  if(user?.role !== 'owner' || e.status !== 'cancelled'){
+    return;
+  }
+
+  if(!confirm(
+    'Permanently delete "' + e.title + '"?\n\n' +
+    'All associated RSVP and attendance records will also be deleted.\n\n' +
+    'This action cannot be undone.'
+  )){
+    return;
+  }
+
+  deleteBtn.disabled = true;
+
+  try {
+    await api('/events/' + id, {
+      method: 'DELETE'
+    });
+
+    window.location.reload();
+
+  } catch(error){
+    alert('Unable to delete event: ' + error.message);
+    deleteBtn.disabled = false;
+  }
+};
 }
 
 async function refreshLeader(){
