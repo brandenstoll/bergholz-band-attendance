@@ -527,19 +527,26 @@ header .brand-copy { min-width: 0; }
 </section>
 
 <section class="panel hidden" id="section-onboarding">
-  <h2>Select Your Section</h2>
-  <p class="muted">
-    Please choose your instrument group before using attendance.
-    Your selection will be saved. An administrator can correct it later.
-  </p>
-  <form id="section-onboarding-form" class="form">
-    <label>Instrument group
-      <select id="onboarding-section" required>
-        <option value="" selected disabled>Select Your Section</option>
-      </select>
-    </label>
-    <button type="submit">Save Section</button>
-  </form>
+  <h2>Complete Your Member Profile</h2>
+<p class="muted">
+  Please enter your full name and select your
+  instrument group before using attendance.
+</p>
+<form id="section-onboarding-form" class="form">
+  <label>Full Name
+    <input type="text" id="onboarding-name"
+      required maxlength="100"
+      placeholder="First and Last Name">
+  </label>
+  <label>Instrument Group
+    <select id="onboarding-section" required>
+      <option value="" selected disabled>
+        Select Your Section
+      </option>
+    </select>
+  </label>
+  <button type="submit">Save Profile</button>
+</form>
   <p class="notice" id="section-onboarding-message" aria-live="polite"></p>
 </section>
 
@@ -633,14 +640,16 @@ header .brand-copy { min-width: 0; }
       </div>
       <div id="bulk-panel" class="hidden">
         <p class="muted small">
-          Paste one person per line: Full Name, email@example.com.
-          New members will have the Member role.
-          Existing email addresses will be skipped by the server.
-        </p>
-        <label>Names and email addresses
-          <textarea id="bulk-input" rows="7"
-            placeholder="Jess Smith, jess@example.com&#10;Robert Jones, robert@example.com"></textarea>
-        </label>
+  Paste one email address per line.
+  New members will have the Member role.
+  Members will enter their name and select their instrument group when they first sign in.
+  Existing email addresses will be skipped by the server.
+</p>
+<label>Email addresses
+  <textarea id="bulk-input" rows="7"
+    placeholder="jess@example.com&#10;robert@example.com"></textarea>
+</label>
+
         <div class="rowactions" style="margin-top:10px">
           <button type="button" class="secondary" id="bulk-preview">
             Review entries
@@ -1915,21 +1924,29 @@ async function loadOnboarding(){
 $('section-onboarding-form').onsubmit=async ev=>{
   ev.preventDefault();
 
-  const section_id=Number(
-    $('onboarding-section').value
-  );
+  const display_name=$('onboarding-name').value.trim();
+  const section_id=Number($('onboarding-section').value);
+
+  if(!display_name || display_name.length>100){
+    $('section-onboarding-message').textContent=
+      'Please enter your full name.';
+    return;
+  }
 
   if(!section_id){
     $('section-onboarding-message').textContent=
-      'Please select your section.';
+      'Please select your instrument group.';
     return;
   }
 
   try{
-    await send('/me/section',{section_id});
+    await send('/me/section',{
+      display_name,
+      section_id
+    });
 
     $('section-onboarding-message').textContent=
-      'Section saved.';
+      'Profile saved successfully.';
 
     await init();
 
@@ -2187,44 +2204,25 @@ $('bulk-preview').onclick=()=>{
   const valid=[];
   const errors=[];
 
+  if(lines.length>100){
+    errors.push('Maximum 100 members per import.');
+  }
+
   for(let i=0;i<lines.length;i++){
-    const line=lines[i];
-    const at=line.lastIndexOf(',');
+    const email=lines[i].toLowerCase();
 
-    if(at<1){
-      errors.push(
-        `Line ${i+1}: use Name, email@example.com`
-      );
-      continue;
-    }
-
-    const name=line.slice(0,at).trim();
-    const email=line.slice(at+1).trim().toLowerCase();
-
-    if(
-      !name||
-      name.length>100||
-      !/^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/.test(email)
-    ){
-      errors.push(
-        `Line ${i+1}: invalid name or email`
-      );
+    if(!/^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/.test(email)){
+      errors.push(`Line ${i+1}: invalid email address`);
       continue;
     }
 
     if(seen.has(email)){
-      errors.push(
-        `Line ${i+1}: duplicate email in pasted list`
-      );
+      errors.push(`Line ${i+1}: duplicate email`);
       continue;
     }
 
     seen.add(email);
-
-    valid.push({
-      display_name:name,
-      email
-    });
+    valid.push({email});
   }
 
   bulkEntries=valid;
@@ -2237,10 +2235,9 @@ $('bulk-preview').onclick=()=>{
     :`${valid.length} members ready to add.`;
 
   $('bulk-results').innerHTML=valid.length
-    ?'<table><thead><tr><th>Name</th><th>Email</th></tr></thead><tbody>'+
+    ?'<table><thead><tr><th>Email Address</th></tr></thead><tbody>'+
       valid.map(m=>`
         <tr>
-          <td>${esc(m.display_name)}</td>
           <td>${esc(m.email)}</td>
         </tr>
       `).join('')+
