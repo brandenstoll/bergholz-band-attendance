@@ -706,7 +706,44 @@ header .brand-copy { min-width: 0; }
         <option value="">Add a new event</option>
       </select>
     </label>
-    <div class="subpanel">
+    <div id="event-documents-admin" class="subpanel hidden">
+  <h3>Event Documents</h3>
+  <p class="muted small">
+    Upload set lists and other documents for band members.
+    Multiple documents can be attached to each event.
+  </p>
+
+  <form id="document-upload-form" class="form">
+    <label>Select Event
+      <select id="document-event" name="event_id" required>
+        <option value="">Choose an event</option>
+      </select>
+    </label>
+
+    <label>Document Title
+      <input type="text" name="title" required
+        maxlength="150"
+        placeholder="Example: Set List - First Set">
+    </label>
+
+    <label>Select File
+      <input type="file" name="file" required
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.txt">
+    </label>
+
+    <p class="muted small">
+      Maximum file size: 10 MB.
+    </p>
+
+    <button type="submit">Upload Document</button>
+  </form>
+
+  <p id="document-upload-msg" class="notice"
+    aria-live="polite"></p>
+
+  <h4>Uploaded Documents</h4>
+  <div id="document-admin-list"></div>
+</div><div class="subpanel">
       <h3 id="event-form-title">Add an event</h3>
       <form id="event-form" class="form">
         <label>Title
@@ -1766,6 +1803,20 @@ function eventOptions(){
 }
 
 function renderEventOptions(){
+    const documentEvent = $('document-event');
+  const documentPanel = $('event-documents-admin');
+
+  documentPanel.classList.toggle('hidden', !admin());
+
+  const previousDocumentEvent = documentEvent.value;
+
+  documentEvent.innerHTML =
+    '<option value="">Choose an event</option>' +
+    eventOptions();
+
+  if(events.some(e => String(e.id) === previousDocumentEvent)){
+    documentEvent.value = previousDocumentEvent;
+  }
   const prev=$('summary-event').value;
 
   $('summary-event').innerHTML=eventOptions();
