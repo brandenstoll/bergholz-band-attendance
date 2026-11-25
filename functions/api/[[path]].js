@@ -37,6 +37,150 @@ export async function onRequest({request,env,params}){
   }
   if(path==='/auth/logout'&&method==='POST'){const token=cookie('band_session',request);if(token)await env.DB.prepare('DELETE FROM sessions WHERE token_hash=?').bind(await sha(token)).run();return new Response(JSON.stringify({ok:true}),{headers:{'Content-Type':'application/json','Set-Cookie':'band_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0'}})}
   const user=await current(request,env);if(!user)return json({error:'Sign in required'},401);
+  if(path==='/documents' && method==='GET'){
+  const rows=await env.DB.prepare(`
+    SELECT id,event_id,title,filename,
+           content_type,file_size,uploaded_at
+    FROM event_documents
+    ORDER BY uploaded_at DESC,id DESC
+  `).all();
+
+  return json({documents:rows.results});
+}
+  if(path==='/documents' && method==='POST'){
+  if(!['admin','owner'].includes(user.role)){
+    return json({error:'Administrator access required'},403);
+  }
+
+  const form=await request.formData();
+  const event_id=Number(form.get('event_id'));
+  const title=String(form.get('title')||'').trim();
+  const file=form.get('file');
+
+  if(!Number.isSafeInteger(event_id)||event_id<1){
+    return json({error:'Select a valid event'},400);
+  }
+
+  if(!title||title.length>150){
+    return json({error:'Enter a valid document title'},400);
+  }
+
+  if(!(file instanceof File)||file.size===0){
+    return json({error:'Select a file'},400);
+  }
+
+  if(file.size>10*1024*1024){
+    return json({error:'Maximum file size is 10 MB'},400);
+  }
+
+  const allowed={
+    pdf:'application/pdf',
+    doc:'application/msword',
+    docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    xls:'application/vnd.ms-excel',
+    xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    txt:'text/plain'
+  };
+
+  const ext=file.name.split('.').pop().toLowerCase();
+  const content_type=allowed[ext];
+
+  if(!content_type){
+    return json({error:'Unsupported file type'},400);
+  }
+
+  const event=await env.DB.prepare(
+    'SELECT id FROM events WHERE id=?'
+  ).bind(event_id).first();
+
+  if(!event){
+    return json({error:'Event not found'},404);
+  }
+
+  const object_key=`events/${event_id}/${crypto.randomUUID()}.${ext}`;
+
+  await env.DOCUMENTS.put(object_key,file.stream(),{
+    httpMetadata:{contentType:content_type}
+  });
+
+  try{
+    await env.DB.prepare(`
+      INSERT INTO event_documents
+      (event_id,title,filename,object_key,
+       content_type,file_size,uploaded_by)
+      VALUES (?,?,?,?,?,?,?)
+    `).bind(
+      event_id,title,file.name,object_key,
+      content_type,file.size,user.id
+    ).run();
+  }catch(e){
+    await env.DOCUMENTS.delete(object_key);
+    throw e;
+  }
+
+  return json({ok:true});
+}
+  if(path.startsWith('/documents/') && method==='GET'){
+  const id=Number(path.split('/')[2]);
+
+  if(!Number.isSafeInteger(id)||id<1){
+    return json({error:'Invalid document ID'},400);
+  }
+
+  const doc=await env.DB.prepare(
+    'SELECT * FROM event_documents WHERE id=?'
+  ).bind(id).first();
+
+  if(!doc){
+    return json({error:'Document not found'},404);
+  }
+
+  const object=await env.DOCUMENTS.get(doc.object_key);
+
+  if(!object){
+    return json({error:'File not found'},404);
+  }
+
+  const filename=encodeURIComponent(doc.filename)
+    .replace(/['()*]/g,c=>'%'+c.charCodeAt(0).toString(16));
+
+  return new Response(object.body,{
+    headers:{
+      'Content-Type':doc.content_type,
+      'Content-Disposition':`attachment; filename*=UTF-8''${filename}`,
+      'Content-Length':String(object.size),
+      'Cache-Control':'private, no-store',
+      'X-Content-Type-Options':'nosniff'
+    }
+  });
+}
+  if(path.startsWith('/documents/') && method==='DELETE'){
+  if(!['admin','owner'].includes(user.role)){
+    return json({error:'Administrator access required'},403);
+  }
+
+  const id=Number(path.split('/')[2]);
+
+  if(!Number.isSafeInteger(id)||id<1){
+    return json({error:'Invalid document ID'},400);
+  }
+
+  const doc=await env.DB.prepare(
+    'SELECT * FROM event_documents WHERE id=?'
+  ).bind(id).first();
+
+  if(!doc){
+    return json({error:'Document not found'},404);
+  }
+
+  await env.DOCUMENTS.delete(doc.object_key);
+
+  await env.DB.prepare(
+    'DELETE FROM event_documents WHERE id=?'
+  ).bind(id).run();
+
+  return json({ok:true});
+}
    if(path==='/me/section'&&method==='POST'){
   const d=await body(request);
   const section=Number(d?.section_id);
