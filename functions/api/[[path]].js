@@ -167,8 +167,13 @@ return json({members: rows.results});
     if(!sec)return json({error:'Section not found'},404);
     const cleaned=[],seen=new Set();
     for(let i=0;i<d.members.length;i++){
-     const m=d.members[i];const name=String(m?.display_name||'').trim(),email=String(m?.email||'').trim().toLowerCase();
-     if(!name||name.length>100||!emailOK(email))return json({error:`Invalid name or email on entry ${i+1}; nothing was imported`},400);
+     const m = d.members[i];
+const email = String(m?.email || '').trim().toLowerCase();
+const name = String(m?.display_name || '').trim() || email.split('@')[0];
+
+if (!emailOK(email) || !name || name.length > 100)
+  return json({error: `Invalid name or email on entry ${i+1}; nothing was imported`}, 400);
+
      if(seen.has(email))return json({error:`Duplicate email on entry ${i+1}; nothing was imported`},400);
      seen.add(email);cleaned.push({name,email});
     }
