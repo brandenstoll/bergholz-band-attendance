@@ -38,14 +38,34 @@ export async function onRequest({request,env,params}){
   if(path==='/auth/logout'&&method==='POST'){const token=cookie('band_session',request);if(token)await env.DB.prepare('DELETE FROM sessions WHERE token_hash=?').bind(await sha(token)).run();return new Response(JSON.stringify({ok:true}),{headers:{'Content-Type':'application/json','Set-Cookie':'band_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0'}})}
   const user=await current(request,env);if(!user)return json({error:'Sign in required'},401);
    if(path==='/me/section'&&method==='POST'){
-    const d=await body(request);const section=Number(d?.section_id);
-    if(!Number.isSafeInteger(section)||section<1)return json({error:'Choose a valid section'},400);
-    const found=await env.DB.prepare('SELECT id FROM sections WHERE id=?').bind(section).first();
-    if(!found)return json({error:'Section not found'},404);
-    if(user.section_confirmed!==0)return json({error:'Your section is already assigned. Contact an administrator to change it.'},403);
-    await env.DB.prepare('UPDATE members SET section_id=?,section_confirmed=1 WHERE id=? AND section_confirmed=0').bind(section,user.id).run();
-    return json({ok:true});
-   }
+  const d=await body(request);
+  const section=Number(d?.section_id);
+  const name=String(d?.display_name??'').trim();
+
+  if(!name||name.length>100)
+    return json({error:'Enter your full name'},400);
+
+  if(!Number.isSafeInteger(section)||section<1)
+    return json({error:'Choose a valid section'},400);
+
+  const found=await env.DB.prepare(
+    'SELECT id FROM sections WHERE id=?'
+  ).bind(section).first();
+
+  if(!found)
+    return json({error:'Section not found'},404);
+
+  if(user.section_confirmed!==0)
+    return json({
+      error:'Your profile is already confirmed. Contact an administrator to change it.'
+    },403);
+
+  await env.DB.prepare(
+    'UPDATE members SET display_name=?,section_id=?,section_confirmed=1 WHERE id=? AND section_confirmed=0'
+  ).bind(name,section,user.id).run();
+
+  return json({ok:true});
+}
    if(path==='/sections'&&method==='GET'){const rows=await env.DB.prepare('SELECT id,name FROM sections ORDER BY name').all();return json({sections:rows.results})}
   if(path==='/attendance'&&method==='GET'){
    const rows=await env.DB.prepare('SELECT a.event_id,a.member_id,a.response,m.display_name,m.section_id FROM attendance a JOIN members m ON m.id=a.member_id WHERE m.active=1 AND m.section_confirmed=1 AND (m.id=? OR (?=1 AND (m.section_id=? OR ?=1)))').bind(user.id,leader(user)?1:0,user.section_id,admin(user)?1:0).all();return json({attendance:rows.results})
