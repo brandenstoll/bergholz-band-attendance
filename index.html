@@ -608,7 +608,12 @@ header .brand-copy { min-width: 0; }
     <label>Choose an event
       <select id="summary-event"></select>
     </label>
-    <div id="summary-content"></div>
+    <div class="rowactions" style="margin:12px 0">
+  <button type="button" id="print-attendance">
+    Print Attendance
+  </button>
+</div>
+<div id="summary-content"></div>
   </div>
 
   <div id="tab-members" class="hidden">
@@ -2130,7 +2135,100 @@ document.querySelectorAll('[data-tab]').forEach(b=>{
 $('summary-event').onchange=renderSummary;
 $('member-filter').onchange=renderMembers;
 $('member-cancel').onclick=resetMember;
+$('print-attendance').onclick=()=>{
+  const eventSelect=$('summary-event');
 
+  if(!eventSelect.value){
+    alert('Please select an event first.');
+    return;
+  }
+
+  const eventName=eventSelect.options[
+    eventSelect.selectedIndex
+  ].textContent;
+
+  const report=$('summary-content').cloneNode(true);
+
+  report.querySelectorAll('select').forEach(select=>{
+    const text=document.createElement('span');
+    text.textContent=select.options[
+      select.selectedIndex
+    ]?.textContent || '';
+    select.replaceWith(text);
+  });
+
+  report.querySelectorAll('button,input').forEach(el=>{
+    el.remove();
+  });
+
+  const printWindow=window.open('','_blank');
+
+  if(!printWindow){
+    alert('Please allow pop-ups to print attendance.');
+    return;
+  }
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Attendance Report</title>
+      <style>
+        @page { size: letter; margin: 0.5in; }
+        body {
+          font-family: Arial, sans-serif;
+          font-size: 12px;
+          color: #000;
+        }
+        h1 {
+          text-align: center;
+          font-size: 24px;
+          margin-bottom: 5px;
+        }
+        h2 {
+          text-align: center;
+          font-size: 18px;
+          margin: 5px 0 20px;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-bottom: 15px;
+        }
+        th, td {
+          border: 1px solid #aaa;
+          padding: 6px;
+          text-align: left;
+        }
+        th {
+          background: #eee;
+        }
+        tr {
+          break-inside: avoid;
+        }
+        thead {
+          display: table-header-group;
+        }
+        h3, h4 {
+          break-after: avoid;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Bergholz German Band</h1>
+      <h2>Event Attendance Report</h2>
+      <p><strong>Event:</strong> ${esc(eventName)}</p>
+      <p><strong>Printed:</strong> ${new Date().toLocaleDateString()}</p>
+      <hr>
+      ${report.innerHTML}
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+};
 /*
  * Add or edit a member
  */
