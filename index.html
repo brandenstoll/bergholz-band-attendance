@@ -583,6 +583,10 @@ header .brand-copy { min-width: 0; }
   </div>
   <p id="detail-info" class="muted"></p>
   <p id="detail-notes"></p>
+  <div id="event-documents" class="hidden">
+  <h3>Event Documents</h3>
+  <div id="event-documents-list"></div>
+</div>
   <div id="response"></div>
   <div id="roster"></div>
 </section>
@@ -1306,7 +1310,45 @@ function render(){
     el.onclick=()=>openEvent(+el.dataset.open);
   });
 }
+async function loadEventDocuments(id){
+  const panel = $('event-documents');
+  const list = $('event-documents-list');
 
+  panel.classList.add('hidden');
+  list.replaceChildren();
+
+  if(!user) return;
+
+  try{
+    const result = await api('/documents');
+
+    if(Number(selected?.id) !== Number(id)) return;
+
+    const documents = (result.documents || []).filter(doc =>
+      Number(doc.event_id) === Number(id)
+    );
+
+    if(!documents.length) return;
+
+    documents.forEach(doc => {
+      const row = document.createElement('p');
+      const link = document.createElement('a');
+
+      link.href = '/api/documents/' + doc.id;
+      link.textContent = doc.title || doc.filename;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+
+      row.appendChild(link);
+      list.appendChild(row);
+    });
+
+    panel.classList.remove('hidden');
+
+  }catch(error){
+    console.error('Unable to load event documents:', error);
+  }
+}
 function openEvent(id){
   showPortalView('attendance');
 
@@ -1323,7 +1365,7 @@ function openEvent(id){
     (selected.status==='cancelled'?' · CANCELLED':'');
 
   $('detail-notes').textContent=selected.notes||'';
-
+loadEventDocuments(id);
   if(!user){
     $('response').innerHTML=
       '<p>Sign in to respond to this event.</p>';
