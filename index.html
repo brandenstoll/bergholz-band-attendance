@@ -1438,7 +1438,124 @@ async function loadAttendance(){
     attendanceVerifications = result.verifications || [];
   }
 }
+$('document-upload-form').addEventListener('submit', async function(e){
+  e.preventDefault();
 
+  if(!admin()) return;
+
+  const form = e.currentTarget;
+  const msg = $('document-upload-msg');
+  const button = form.querySelector('button[type="submit"]');
+
+  button.disabled = true;
+  msg.textContent = 'Uploading document...';
+
+  try{
+    const response = await fetch('/api/documents', {
+      method: 'POST',
+      body: new FormData(form)
+    });
+
+    const result = await response.json();
+
+    if(!response.ok || !result.ok){
+      throw new Error(result.error || 'Upload failed');
+    }
+
+    const eventId = $('document-event').value;
+
+    form.reset();
+
+    $('document-event').value = eventId;
+
+    msg.textContent = 'Document uploaded successfully.';
+await loadDocuments();
+  }catch(error){
+    msg.textContent = error.message;
+  }finally{
+    button.disabled = false;
+  }
+});
+  async function loadDocuments(){
+  const list = $('document-admin-list');
+
+  if(!admin()) return;
+
+  list.textContent = 'Loading documents...';
+
+  try{
+    const result = await api('/documents');
+    const documents = result.documents || [];
+
+    list.replaceChildren();
+
+    if(!documents.length){
+      list.textContent = 'No documents uploaded yet.';
+      return;
+    }
+
+    documents.forEach(doc => {
+      const event = events.find(e =>
+        Number(e.id) === Number(doc.event_id)
+      );
+
+      const row = document.createElement('div');
+      row.className = 'subpanel';
+
+      const title = document.createElement('strong');
+      title.textContent = doc.title;
+
+      const info = document.createElement('p');
+      info.className = 'muted small';
+      info.textContent =
+        (event?.title || 'Unknown event') +
+        ' — ' + doc.filename;
+
+      const download = document.createElement('a');
+      download.href = '/api/documents/' + doc.id;
+      download.textContent = 'Download';
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'secondary';
+      remove.textContent = 'Delete';
+      remove.style.marginLeft = '10px';
+
+      remove.onclick = async () => {
+        if(!confirm('Delete this document?')) return;
+
+        remove.disabled = true;
+
+        try{
+          const response = await fetch(
+            '/api/documents/' + doc.id,
+            {method:'DELETE'}
+          );
+
+          const result = await response.json();
+
+          if(!response.ok || !result.ok){
+            throw new Error(
+              result.error || 'Delete failed'
+            );
+          }
+
+          await loadDocuments();
+
+        }catch(error){
+          alert(error.message);
+          remove.disabled = false;
+        }
+      };
+
+      row.append(title, info, download, remove);
+      list.appendChild(row);
+    });
+
+  }catch(error){
+    list.textContent = error.message;
+  }
+}
 function renderSummary(){
   if(!leader())return;
 
@@ -1807,7 +1924,7 @@ function renderEventOptions(){
   const documentPanel = $('event-documents-admin');
 
   documentPanel.classList.toggle('hidden', !admin());
-
+if(admin()) loadDocuments();
   const previousDocumentEvent = documentEvent.value;
 
   documentEvent.innerHTML =
